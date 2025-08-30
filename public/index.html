@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Booking - Trang Chủ</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-film floating"></i>
+                <h1>Cinema Booking</h1>
+            </div>
+            <nav class="nav-menu">
+                <a href="#home" class="nav-link active">Trang Chủ</a>
+                <a href="#movies" class="nav-link">Phim</a>
+                <a href="#about" class="nav-link">Giới Thiệu</a>
+                <a href="#contact" class="nav-link">Liên Hệ</a>
+            </nav>
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn-secondary" onclick="showLoginForm()">
+                    <i class="fas fa-sign-in-alt"></i> Đăng Nhập
+                </button>
+                <button class="btn-primary" onclick="showRegisterForm()">
+                    <i class="fas fa-user-plus"></i> Đăng Ký
+                </button>
+            </div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="userName"></span>
+                <button id="logoutBtn" class="btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </button>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero-section" id="home">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">Chào mừng đến với</span><br>
+                    <span class="hero-main">Cinema Booking</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Hệ thống đặt vé xem phim hiện đại nhất với công nghệ real-time
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn-primary btn-hero" onclick="showRegisterForm()">
+                        <i class="fas fa-rocket"></i> Bắt Đầu Ngay
+                    </button>
+                    <button class="btn-secondary btn-hero" onclick="scrollToMovies()">
+                        <i class="fas fa-film"></i> Xem Phim
+                    </button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="floating-cards">
+                    <div class="movie-card-mini">
+                        <i class="fas fa-film"></i>
+                        <span>Avengers</span>
+                    </div>
+                    <div class="movie-card-mini">
+                        <i class="fas fa-film"></i>
+                        <span>Spider-Man</span>
+                    </div>
+                    <div class="movie-card-mini">
+                        <i class="fas fa-film"></i>
+                        <span>Black Panther</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <h2 class="section-title">Tại sao chọn chúng tôi?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Đặt Vé Nhanh Chóng</h3>
+                    <p>Chỉ vài cú click, bạn đã có vé xem phim yêu thích</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Real-time Cập Nhật</h3>
+                    <p>Thông tin ghế và suất chiếu được cập nhật tức thì</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Responsive Design</h3>
+                    <p>Hoạt động hoàn hảo trên mọi thiết bị</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>An Toàn & Bảo Mật</h3>
+                    <p>Thông tin cá nhân được bảo vệ tuyệt đối</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Movies Preview Section -->
+        <section class="movies-preview" id="movies">
+            <h2 class="section-title">Phim Đang Chiếu</h2>
+            <div class="movies-grid" id="moviesGrid">
+                <!-- Movies will be loaded here -->
+            </div>
+            <div class="view-all-container">
+                <button class="btn-primary btn-view-all" onclick="showAllMovies()">
+                    <i class="fas fa-th-large"></i> Xem Tất Cả Phim
+                </button>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section" id="about">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title">Về Chúng Tôi</h2>
+                    <p>Cinema Booking là hệ thống đặt vé xem phim tiên tiến, sử dụng công nghệ Socket.IO để mang đến trải nghiệm real-time cho người dùng.</p>
+                    <p>Với giao diện hiện đại và dễ sử dụng, chúng tôi cam kết mang đến dịch vụ đặt vé nhanh chóng, thuận tiện và an toàn.</p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-number">1000+</span>
+                            <span class="stat-label">Khách hàng</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">50+</span>
+                            <span class="stat-label">Phim</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">99%</span>
+                            <span class="stat-label">Hài lòng</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <div class="cinema-illustration">
+                        <i class="fas fa-theater-masks"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact-section" id="contact">
+            <h2 class="section-title">Liên Hệ</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>Địa Chỉ</h4>
+                            <p>123 Đường ABC, Quận 1, TP.HCM</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>Điện Thoại</h4>
+                            <p>+84 123 456 789</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>Email</h4>
+                            <p>info@cinemabooking.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <h3>Gửi Tin Nhắn</h3>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" placeholder="Tên của bạn" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="Nội dung tin nhắn" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i> Gửi Tin Nhắn
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Modal -->
+        <div class="modal" id="loginModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-sign-in-alt"></i> Đăng Nhập</h2>
+                    <button class="close-modal" onclick="closeModal('loginModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="loginForm" class="modal-form">
+                    <div class="form-group">
+                        <input type="email" id="loginEmail" placeholder="Email" required>
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="loginPassword" placeholder="Mật khẩu" required>
+                        <i class="fas fa-lock input-icon"></i>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Đăng Nhập
+                    </button>
+                </form>
+                <div class="modal-footer">
+                    <p>Chưa có tài khoản? <a href="#" onclick="switchToRegister()">Đăng ký ngay</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div class="modal" id="registerModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-user-plus"></i> Đăng Ký</h2>
+                    <button class="close-modal" onclick="closeModal('registerModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="registerForm" class="modal-form">
+                    <div class="form-group">
+                        <input type="text" id="registerName" placeholder="Tên của bạn" required>
+                        <i class="fas fa-user input-icon"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="registerEmail" placeholder="Email" required>
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" id="registerPhone" placeholder="Số điện thoại" required>
+                        <i class="fas fa-phone input-icon"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="registerPassword" placeholder="Mật khẩu" required>
+                        <i class="fas fa-lock input-icon"></i>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-user-plus"></i> Đăng Ký
+                    </button>
+                </form>
+                <div class="modal-footer">
+                    <p>Đã có tài khoản? <a href="#" onclick="switchToLogin()">Đăng nhập</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App Content (Hidden by default) -->
+        <div class="main-content" id="mainContent" style="display: none;">
+            <!-- Movies Section -->
+            <section class="movies-section">
+                <h2><i class="fas fa-film"></i> Phim Đang Chiếu</h2>
+                <div class="movies-grid" id="moviesGridApp">
+                    <!-- Movies will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Booking Section -->
+            <section class="booking-section" id="bookingSection" style="display: none;">
+                <h2><i class="fas fa-ticket-alt"></i> Đặt Vé</h2>
+                <div class="movie-details" id="movieDetails">
+                    <!-- Movie details will be shown here -->
+                </div>
+                <div class="showtime-selection">
+                    <h3><i class="fas fa-clock"></i> Chọn Suất Chiếu</h3>
+                    <div class="showtimes-grid" id="showtimesGrid">
+                        <!-- Showtimes will be loaded here -->
+                    </div>
+                </div>
+                <div class="seat-selection" id="seatSelection" style="display: none;">
+                    <h3><i class="fas fa-chair"></i> Chọn Ghế</h3>
+                    <div class="seats-container">
+                        <div class="screen">
+                            <i class="fas fa-tv"></i> MÀN HÌNH
+                        </div>
+                        <div class="seats-grid" id="seatsGrid">
+                            <!-- Seats will be generated here -->
+                        </div>
+                        <div class="seat-legend">
+                            <div class="legend-item">
+                                <div class="seat available"></div>
+                                <span>Có sẵn</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="seat selected"></div>
+                                <span>Đã chọn</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="seat booked"></div>
+                                <span>Đã đặt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="booking-summary" id="bookingSummary">
+                        <h4><i class="fas fa-receipt"></i> Tóm Tắt Đặt Vé</h4>
+                        <div id="summaryDetails"></div>
+                        <button id="confirmBookingBtn" class="btn-primary">
+                            <i class="fas fa-check-circle"></i> Xác Nhận Đặt Vé
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Bookings Section -->
+            <section class="bookings-section">
+                <h2><i class="fas fa-list-alt"></i> Vé Của Tôi</h2>
+                <div class="bookings-list" id="bookingsList">
+                    <!-- Bookings will be shown here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification" id="notification">
+            <span id="notificationMessage"></span>
+            <button id="closeNotification">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Background Particles -->
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
