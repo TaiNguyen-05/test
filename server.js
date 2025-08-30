@@ -475,9 +475,17 @@ app.delete('/api/admin/movies/:id', (req, res) => {
       return res.status(404).json({ error: 'Phim không tồn tại' });
     }
     
+    // Kiểm tra xem phim đã bị xóa chưa
+    if (existingMovie.status === 'deleted') {
+      return res.status(400).json({ error: 'Phim đã bị xóa trước đó' });
+    }
+    
     const success = Movie.delete(movieId);
     if (!success) {
-      return res.status(500).json({ error: 'Xóa phim thất bại' });
+      return res.status(400).json({ 
+        error: 'Không thể xóa phim',
+        message: 'Phim này đang có suất chiếu hoạt động. Vui lòng hủy tất cả suất chiếu trước khi xóa.'
+      });
     }
     
     Activity.create({
@@ -487,9 +495,44 @@ app.delete('/api/admin/movies/:id', (req, res) => {
       timestamp: new Date().toISOString()
     });
     
-    res.json({ message: 'Phim đã được xóa thành công' });
+    res.json({ 
+      message: 'Phim đã được xóa thành công',
+      note: 'Phim đã được ẩn khỏi hệ thống (soft delete)'
+    });
   } catch (error) {
     res.status(500).json({ error: 'Lỗi khi xóa phim' });
+  }
+});
+
+// Khôi phục phim đã bị xóa
+app.post('/api/admin/movies/:id/restore', (req, res) => {
+  try {
+    const movieId = parseInt(req.params.id);
+    const existingMovie = Movie.getById(movieId);
+    
+    if (!existingMovie) {
+      return res.status(404).json({ error: 'Phim không tồn tại' });
+    }
+    
+    if (existingMovie.status !== 'deleted') {
+      return res.status(400).json({ error: 'Phim này chưa bị xóa' });
+    }
+    
+    const success = Movie.restore(movieId);
+    if (!success) {
+      return res.status(500).json({ error: 'Khôi phục phim thất bại' });
+    }
+    
+    Activity.create({
+      id: uuidv4(),
+      type: 'movie_restored',
+      description: `Phim "${existingMovie.title}" đã được khôi phục`,
+      timestamp: new Date().toISOString()
+    });
+    
+    res.json({ message: 'Phim đã được khôi phục thành công' });
+  } catch (error) {
+    res.status(500).json({ error: 'Lỗi khi khôi phục phim' });
   }
 });
 

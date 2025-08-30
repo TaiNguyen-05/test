@@ -493,15 +493,25 @@ function renderMoviesTable() {
             <td>${movie.duration}</td>
             <td>${movie.rating}</td>
             <td>
-                <span class="status-badge active">Đang chiếu</span>
+                ${movie.status === 'deleted' ? 
+                    `<span class="status-badge deleted">Đã xóa</span>` :
+                    `<span class="status-badge active">Đang chiếu</span>`
+                }
             </td>
             <td>
-                <button class="btn-edit" onclick="editMovie(${movie.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-delete" onclick="deleteMovie(${movie.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                ${movie.status === 'deleted' ? 
+                    `<button class="btn-restore" onclick="restoreMovie(${movie.id})" title="Khôi phục phim">
+                        <i class="fas fa-undo"></i>
+                    </button>` :
+                    `<button class="btn-edit" onclick="editMovie(${movie.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>`
+                }
+                ${movie.status !== 'deleted' ? 
+                    `<button class="btn-delete" onclick="deleteMovie(${movie.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>` : ''
+                }
             </td>
         </tr>
     `).join('');
@@ -1169,6 +1179,13 @@ function deleteMovie(movieId) {
     );
 }
 
+function restoreMovie(movieId) {
+    showConfirmModal(
+        'Bạn có chắc chắn muốn khôi phục phim này?',
+        () => performRestoreMovie(movieId)
+    );
+}
+
 function deleteCategory(categoryId) {
     showConfirmModal(
         'Bạn có chắc chắn muốn xóa thể loại này?',
@@ -1193,18 +1210,59 @@ function deleteShowtime(showtimeId) {
 // Perform Delete Operations
 async function performDeleteMovie(movieId) {
     try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await fetch(`/api/admin/movies/${movieId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         
-        movies = movies.filter(m => m.id !== movieId);
-        renderMoviesTable();
-        updateDashboardStats();
+        const result = await response.json();
         
-        showNotification('Phim đã được xóa thành công! 🗑️', 'success');
-        closeModal('confirmModal');
+        if (response.ok) {
+            // Cập nhật danh sách phim
+            await loadMovies();
+            renderMoviesTable();
+            updateDashboardStats();
+            
+            showNotification(result.message + ' ' + (result.note || ''), 'success');
+            closeModal('confirmModal');
+        } else {
+            showNotification(result.error + ': ' + (result.message || ''), 'error');
+        }
         
     } catch (error) {
-        showNotification('Lỗi khi xóa phim', 'error');
+        console.error('Error deleting movie:', error);
+        showNotification('Lỗi khi xóa phim: ' + error.message, 'error');
+    }
+}
+
+async function performRestoreMovie(movieId) {
+    try {
+        const response = await fetch(`/api/admin/movies/${movieId}/restore`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Cập nhật danh sách phim
+            await loadMovies();
+            renderMoviesTable();
+            updateDashboardStats();
+            
+            showNotification(result.message, 'success');
+            closeModal('confirmModal');
+        } else {
+            showNotification(result.error, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error restoring movie:', error);
+        showNotification('Lỗi khi khôi phục phim: ' + error.message, 'error');
     }
 }
 

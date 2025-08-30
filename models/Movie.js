@@ -42,6 +42,16 @@ class Movie {
       `);
       const categories = categoryStmt.all(movie.id);
       movie.categories = categories.map(c => c.name).join(', ');
+      
+      // Thêm thông tin về trạng thái xóa
+      if (movie.status === 'deleted') {
+        movie.isDeleted = true;
+        movie.deleteStatus = 'Đã xóa';
+      } else {
+        movie.isDeleted = false;
+        movie.deleteStatus = 'Hoạt động';
+      }
+      
       return movie;
     });
   }
@@ -134,10 +144,34 @@ class Movie {
     return result.changes > 0;
   }
 
-  // Xóa movie
+  // Xóa movie (soft delete - chỉ cập nhật status)
   static delete(id) {
-    const stmt = db.prepare('DELETE FROM movies WHERE id = ?');
-    const result = stmt.run(id);
+    // Kiểm tra xem có showtime nào đang active không
+    const showtimeStmt = db.prepare(`
+      SELECT COUNT(*) as count FROM showtimes 
+      WHERE movieId = ? AND status = 'active'
+    `);
+    const showtimeCount = showtimeStmt.get(id);
+    
+    if (showtimeCount.count > 0) {
+      // Nếu có showtime active, không cho phép xóa
+      return false;
+    }
+    
+    // Soft delete - chỉ cập nhật status thành 'deleted'
+    const stmt = db.prepare('UPDATE movies SET status = ? WHERE id = ?');
+    const result = stmt.run('deleted', id);
+    
+    // Xóa các liên kết với categories
+    this.removeAllCategories(id);
+    
+    return result.changes > 0;
+  }
+
+  // Khôi phục movie đã bị xóa
+  static restore(id) {
+    const stmt = db.prepare('UPDATE movies SET status = ? WHERE id = ?');
+    const result = stmt.run('active', id);
     return result.changes > 0;
   }
 

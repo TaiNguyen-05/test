@@ -697,6 +697,21 @@ body {
     background: #c82333;
 }
 
+.btn-restore {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-restore:hover {
+    background: #218838;
+}
+
 /* Modals */
 .modal {
     display: none;
@@ -1018,6 +1033,11 @@ body {
 .status-badge.pending {
     background: #fff3cd;
     color: #856404;
+}
+
+.status-badge.deleted {
+    background: #6c757d;
+    color: white;
 }
 
 /* Role Badges */

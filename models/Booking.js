@@ -119,6 +119,13 @@ class Booking {
     return result.changes > 0;
   }
 
+  // Hủy vé (cập nhật status thành cancelled)
+  static cancel(id) {
+    const stmt = db.prepare('UPDATE bookings SET status = ? WHERE id = ?');
+    const result = stmt.run('cancelled', id);
+    return result.changes > 0;
+  }
+
   // Xóa booking
   static delete(id) {
     const stmt = db.prepare('DELETE FROM bookings WHERE id = ?');

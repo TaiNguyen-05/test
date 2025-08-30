@@ -325,6 +325,154 @@ router.delete('/movies/:id', (req, res) => {
   }
 });
 
+// Khôi phục phim đã bị xóa
+router.post('/movies/:id/restore', (req, res) => {
+  try {
+    const movieId = parseInt(req.params.id);
+    const existingMovie = Movie.getById(movieId);
+    
+    if (!existingMovie) {
+      return res.status(404).json({ error: 'Phim không tồn tại' });
+    }
+    
+    if (existingMovie.status !== 'deleted') {
+      return res.status(400).json({ error: 'Phim này chưa bị xóa' });
+    }
+    
+    const success = Movie.restore(movieId);
+    if (!success) {
+      return res.status(500).json({ error: 'Khôi phục phim thất bại' });
+    }
+    
+    Activity.create({
+      id: uuidv4(),
+      type: 'movie_restored',
+      description: `Phim "${existingMovie.title}" đã được khôi phục`,
+      timestamp: new Date().toISOString()
+    });
+    
+    res.json({ message: 'Phim đã được khôi phục thành công' });
+  } catch (error) {
+    res.status(500).json({ error: 'Lỗi khi khôi phục phim' });
+  }
+});
+
+// Booking management endpoints
+router.get('/bookings', (req, res) => {
+  try {
+    const { status, date, search } = req.query;
+    let allBookings = Booking.getAll();
+    
+    // Lọc theo status
+    if (status && status !== 'all') {
+      allBookings = allBookings.filter(booking => booking.status === status);
+    }
+    
+    // Lọc theo ngày
+    if (date) {
+      allBookings = allBookings.filter(booking => {
+        const bookingDate = new Date(booking.date).toISOString().split('T')[0];
+        return bookingDate === date;
+      });
+    }
+    
+    // Lọc theo tìm kiếm
+    if (search) {
+      const searchLower = search.toLowerCase();
+      allBookings = allBookings.filter(booking => 
+        booking.movieTitle.toLowerCase().includes(searchLower) ||
+        booking.userName.toLowerCase().includes(searchLower) ||
+        booking.userEmail.toLowerCase().includes(searchLower) ||
+        booking.id.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    res.json(allBookings);
+  } catch (error) {
+    console.error('Error getting bookings:', error);
+    res.status(500).json({ error: 'Lỗi khi lấy danh sách vé' });
+  }
+});
+
+router.get('/bookings/:id', (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const booking = Booking.getById(bookingId);
+    
+    if (!booking) {
+      return res.status(404).json({ error: 'Vé không tồn tại' });
+    }
+    
+    res.json(booking);
+  } catch (error) {
+    console.error('Error getting booking:', error);
+    res.status(500).json({ error: 'Lỗi khi lấy thông tin vé' });
+  }
+});
+
+router.put('/bookings/:id/status', (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const { status } = req.body;
+    
+    if (!status) {
+      return res.status(400).json({ error: 'Thiếu trạng thái mới' });
+    }
+    
+    const existingBooking = Booking.getById(bookingId);
+    if (!existingBooking) {
+      return res.status(404).json({ error: 'Vé không tồn tại' });
+    }
+    
+    const success = Booking.updateStatus(bookingId, status);
+    if (!success) {
+      return res.status(500).json({ error: 'Cập nhật trạng thái vé thất bại' });
+    }
+    
+    // Ghi log hoạt động
+    Activity.create({
+      id: uuidv4(),
+      type: 'booking_status_updated',
+      description: `Cập nhật trạng thái vé #${bookingId.slice(0, 8)} thành ${status}`,
+      timestamp: new Date().toISOString()
+    });
+    
+    res.json({ message: 'Cập nhật trạng thái vé thành công' });
+  } catch (error) {
+    console.error('Error updating booking status:', error);
+    res.status(500).json({ error: 'Lỗi khi cập nhật trạng thái vé' });
+  }
+});
+
+router.delete('/bookings/:id', (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    
+    const existingBooking = Booking.getById(bookingId);
+    if (!existingBooking) {
+      return res.status(404).json({ error: 'Vé không tồn tại' });
+    }
+    
+    const success = Booking.delete(bookingId);
+    if (!success) {
+      return res.status(500).json({ error: 'Xóa vé thất bại' });
+    }
+    
+    // Ghi log hoạt động
+    Activity.create({
+      id: uuidv4(),
+      type: 'booking_deleted',
+      description: `Xóa vé #${bookingId.slice(0, 8)} của ${existingBooking.userName}`,
+      timestamp: new Date().toISOString()
+    });
+    
+    res.json({ message: 'Xóa vé thành công' });
+  } catch (error) {
+    console.error('Error deleting booking:', error);
+    res.status(500).json({ error: 'Lỗi khi xóa vé' });
+  }
+});
+
 // Database management endpoints
 router.get('/database/backup', (req, res) => {
   try {

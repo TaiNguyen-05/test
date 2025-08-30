@@ -236,6 +236,11 @@ function showMainContent() {
     document.querySelector('.about-section').style.display = 'none';
     document.querySelector('.contact-section').style.display = 'none';
     
+    // Load vé của người dùng
+    setTimeout(() => {
+        loadUserBookings();
+    }, 500); // Đợi một chút để đảm bảo user đã được set
+    
     // Add entrance animation
     mainContent.style.opacity = '0';
     mainContent.style.transform = 'translateY(50px)';
@@ -550,32 +555,58 @@ function handleConfirmBooking() {
         return;
     }
     
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập để đặt vé', 'error');
+        addErrorEffect(confirmBookingBtn);
+        return;
+    }
+    
     // Add loading state
     const originalText = confirmBookingBtn.innerHTML;
     confirmBookingBtn.innerHTML = '<span class="loading"></span> Đang xử lý...';
     confirmBookingBtn.disabled = true;
     
     const bookingData = {
-        movieId: selectedMovie.id,
-        showtimeId: selectedShowtime.id,
         userId: currentUser.id,
-        userName: currentUser.name,
-        userEmail: currentUser.email,
-        userPhone: currentUser.phone,
+        showtimeId: selectedShowtime.id,
         seats: selectedSeats,
-        totalPrice: selectedShowtime.price * selectedSeats.length,
-        movieTitle: selectedMovie.title,
-        showtime: selectedShowtime.time,
-        date: selectedShowtime.date
+        totalPrice: selectedShowtime.price * selectedSeats.length
     };
     
-    socket.emit('bookTicket', bookingData);
-    
-    // Reset button after 5 seconds if no response
-    setTimeout(() => {
+    // Sử dụng API thay vì Socket.IO
+    fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.message) {
+            // Thêm vé mới vào mảng local ngay lập tức
+            if (result.booking) {
+                userBookings.unshift(result.booking); // Thêm vào đầu mảng
+                renderUserBookings(); // Hiển thị ngay
+            }
+            showNotification('Đặt vé thành công! 🎬', 'success');
+            addSuccessEffect(confirmBookingBtn);
+            resetBookingForm();
+        } else {
+            showNotification(result.error || 'Lỗi khi đặt vé', 'error');
+            addErrorEffect(confirmBookingBtn);
+        }
+    })
+    .catch(error => {
+        console.error('Error booking ticket:', error);
+        showNotification('Lỗi khi đặt vé: ' + error.message, 'error');
+        addErrorEffect(confirmBookingBtn);
+    })
+    .finally(() => {
+        // Reset button
         confirmBookingBtn.innerHTML = originalText;
         confirmBookingBtn.disabled = false;
-    }, 5000);
+    });
 }
 
 function resetBookingForm() {
@@ -586,7 +617,34 @@ function resetBookingForm() {
     seatSelection.style.display = 'none';
 }
 
+// Load vé của người dùng từ API
+async function loadUserBookings() {
+    if (!currentUser) {
+        userBookings = [];
+        renderUserBookings();
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/users/${currentUser.id}/bookings`);
+        if (response.ok) {
+            userBookings = await response.json();
+            console.log('Loaded user bookings:', userBookings); // Debug log
+        } else {
+            console.error('Error loading user bookings:', response.statusText);
+            userBookings = [];
+        }
+    } catch (error) {
+        console.error('Error loading user bookings:', error);
+        userBookings = [];
+    }
+    
+    renderUserBookings();
+}
+
 function renderUserBookings() {
+    console.log('Rendering user bookings:', userBookings); // Debug log
+    
     if (userBookings.length === 0) {
         bookingsList.innerHTML = '<p style="text-align: center; color: #666; font-size: 1.1rem;"><i class="fas fa-ticket-alt"></i> Bạn chưa có vé nào</p>';
         return;
@@ -605,11 +663,11 @@ function renderUserBookings() {
                 </div>
                 <div class="booking-detail">
                     <label><i class="fas fa-clock"></i> Suất chiếu</label>
-                    <span>${booking.showtime} - ${booking.date}</span>
+                    <span>${booking.time || 'N/A'} - ${booking.date || 'N/A'}</span>
                 </div>
                 <div class="booking-detail">
                     <label><i class="fas fa-chair"></i> Ghế</label>
-                    <span>${booking.seats.join(', ')}</span>
+                    <span>${Array.isArray(booking.seats) ? booking.seats.join(', ') : (typeof booking.seats === 'string' ? JSON.parse(booking.seats).join(', ') : 'N/A')}</span>
                 </div>
                 <div class="booking-detail">
                     <label><i class="fas fa-money-bill-wave"></i> Tổng tiền</label>
@@ -638,7 +696,28 @@ function renderUserBookings() {
 
 function cancelTicket(bookingId) {
     if (confirm('Bạn có chắc chắn muốn hủy vé này?')) {
-        socket.emit('cancelTicket', bookingId);
+        // Sử dụng API thay vì Socket.IO
+        fetch(`/api/bookings/${bookingId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.message) {
+                // Xóa vé khỏi mảng local ngay lập tức
+                userBookings = userBookings.filter(b => b.id !== bookingId);
+                renderUserBookings(); // Hiển thị ngay
+                showNotification('Hủy vé thành công! ✅', 'success');
+            } else {
+                showNotification(result.error || 'Lỗi khi hủy vé', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error cancelling ticket:', error);
+            showNotification('Lỗi khi hủy vé: ' + error.message, 'error');
+        });
     }
 }
 
@@ -728,7 +807,7 @@ function updateActiveNav() {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     renderMoviesPreview();
-    renderUserBookings();
+    loadUserBookings(); // Load bookings when the page loads
     
     // Add floating effect to logo
     const logo = document.querySelector('.logo i');

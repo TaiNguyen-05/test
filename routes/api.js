@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid'); // Import uuid for booking ID generation
 
 // Import models
 const Movie = require('../models/Movie');
@@ -163,6 +164,119 @@ router.get('/stats', (req, res) => {
     res.json(stats);
   } catch (error) {
     res.status(500).json({ error: 'Lỗi khi lấy thống kê' });
+  }
+});
+
+// Endpoint để đặt vé
+router.post('/bookings', (req, res) => {
+  try {
+    const { userId, showtimeId, seats, totalPrice } = req.body;
+    
+    if (!userId || !showtimeId || !seats || !totalPrice) {
+      return res.status(400).json({ error: 'Thiếu thông tin cần thiết để đặt vé' });
+    }
+    
+    // Kiểm tra showtime có tồn tại không
+    const showtime = Showtime.getById(parseInt(showtimeId));
+    if (!showtime) {
+      return res.status(404).json({ error: 'Suất chiếu không tồn tại' });
+    }
+    
+    // Kiểm tra ghế có còn trống không
+    const existingBookings = Booking.getByShowtimeId(parseInt(showtimeId));
+    const bookedSeats = [];
+    existingBookings.forEach(booking => {
+      const bookingSeats = JSON.parse(booking.seats);
+      bookedSeats.push(...bookingSeats);
+    });
+    
+    const requestedSeats = Array.isArray(seats) ? seats : [seats];
+    const isSeatAvailable = requestedSeats.every(seat => !bookedSeats.includes(seat));
+    
+    if (!isSeatAvailable) {
+      return res.status(400).json({ error: 'Một số ghế đã được đặt trước đó' });
+    }
+    
+    // Lấy thông tin phim
+    const movie = Movie.getById(showtime.movieId);
+    
+    // Tạo booking mới
+    const bookingId = uuidv4();
+    const newBooking = {
+      id: bookingId,
+      userId: userId,
+      showtimeId: parseInt(showtimeId),
+      movieTitle: movie.title,
+      seats: requestedSeats,
+      totalPrice: parseFloat(totalPrice),
+      status: 'confirmed',
+      createdAt: new Date().toISOString()
+    };
+    
+    const result = Booking.create(newBooking);
+    
+    if (result) {
+      // Lấy booking vừa tạo để trả về
+      const createdBooking = Booking.getById(bookingId);
+      res.status(201).json({
+        message: 'Đặt vé thành công!',
+        booking: createdBooking
+      });
+    } else {
+      res.status(500).json({ error: 'Lỗi khi tạo booking' });
+    }
+    
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ error: 'Lỗi khi đặt vé' });
+  }
+});
+
+// Endpoint để xem vé của người dùng
+router.get('/users/:userId/bookings', (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'Thiếu userId' });
+    }
+    
+    const userBookings = Booking.getByUserId(userId);
+    res.json(userBookings);
+    
+  } catch (error) {
+    console.error('Error getting user bookings:', error);
+    res.status(500).json({ error: 'Lỗi khi lấy danh sách vé' });
+  }
+});
+
+// Endpoint để hủy vé
+router.delete('/bookings/:id', (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    
+    if (!bookingId) {
+      return res.status(400).json({ error: 'Thiếu booking ID' });
+    }
+    
+    // Kiểm tra booking có tồn tại không
+    const existingBooking = Booking.getById(bookingId);
+    if (!existingBooking) {
+      return res.status(404).json({ error: 'Vé không tồn tại' });
+    }
+    
+    // Hủy vé (soft delete hoặc cập nhật status)
+    const success = Booking.cancel(bookingId);
+    
+    if (success) {
+      res.json({ message: 'Hủy vé thành công' });
+    } else {
+      res.status(500).json({ error: 'Lỗi khi hủy vé' });
+    }
+    
+  } catch (error) {
+    console.error('Error cancelling booking:', error);
+    res.status(500).json({ error: 'Lỗi khi hủy vé' });
   }
 });
 
