@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Frontend Load Dữ Liệu</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+        .movie-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .movie-card img { max-width: 200px; height: auto; }
+    </style>
+</head>
+<body>
+    <h1>Test Frontend Load Dữ Liệu</h1>
+    
+    <div class="test-section">
+        <h3>Test Load Movies</h3>
+        <button onclick="testLoadMovies()">Load Movies</button>
+        <div id="moviesResult" class="result"></div>
+        <div id="moviesDisplay"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Load Showtimes</h3>
+        <button onclick="testLoadShowtimes()">Load Showtimes</button>
+        <div id="showtimesResult" class="result"></div>
+        <div id="showtimesDisplay"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Load User Bookings</h3>
+        <button onclick="testLoadUserBookings()">Load User Bookings</button>
+        <div id="bookingsResult" class="result"></div>
+        <div id="bookingsDisplay"></div>
+    </div>
+
+    <script>
+        let movies = [];
+        let showtimes = [];
+        let userBookings = [];
+        
+        async function testLoadMovies() {
+            const resultDiv = document.getElementById('moviesResult');
+            const displayDiv = document.getElementById('moviesDisplay');
+            
+            resultDiv.innerHTML = 'Đang load movies...';
+            
+            try {
+                const response = await fetch('/api/movies');
+                if (response.ok) {
+                    movies = await response.json();
+                    resultDiv.innerHTML = `<div class="success">✅ Load movies thành công: ${movies.length} phim</div>`;
+                    
+                    // Hiển thị movies
+                    displayDiv.innerHTML = movies.map(movie => `
+                        <div class="movie-card">
+                            <img src="${movie.image}" alt="${movie.title}">
+                            <h4>${movie.title}</h4>
+                            <p>Thể loại: ${movie.genre}</p>
+                            <p>Thời lượng: ${movie.duration}</p>
+                            <p>Đánh giá: ${movie.rating}</p>
+                        </div>
+                    `).join('');
+                    
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Lỗi: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${error.message}</div>`;
+            }
+        }
+        
+        async function testLoadShowtimes() {
+            const resultDiv = document.getElementById('showtimesResult');
+            const displayDiv = document.getElementById('showtimesDisplay');
+            
+            resultDiv.innerHTML = 'Đang load showtimes...';
+            
+            try {
+                const response = await fetch('/api/showtimes');
+                if (response.ok) {
+                    showtimes = await response.json();
+                    resultDiv.innerHTML = `<div class="success">✅ Load showtimes thành công: ${showtimes.length} suất chiếu</div>`;
+                    
+                    // Hiển thị showtimes
+                    displayDiv.innerHTML = showtimes.map(showtime => `
+                        <div class="movie-card">
+                            <h4>${showtime.movieTitle}</h4>
+                            <p>Thời gian: ${showtime.time} - ${showtime.date}</p>
+                            <p>Giá: ${showtime.price.toLocaleString('vi-VN')} VNĐ</p>
+                            <p>Còn lại: ${showtime.availableSeats} ghế</p>
+                        </div>
+                    `).join('');
+                    
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Lỗi: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${error.message}</div>`;
+            }
+        }
+        
+        async function testLoadUserBookings() {
+            const resultDiv = document.getElementById('bookingsResult');
+            const displayDiv = document.getElementById('bookingsDisplay');
+            
+            resultDiv.innerHTML = 'Đang load user bookings...';
+            
+            try {
+                // Test với một user ID giả
+                const testUserId = 'test_user_123';
+                const response = await fetch(`/api/users/${testUserId}/bookings`);
+                if (response.ok) {
+                    userBookings = await response.json();
+                    resultDiv.innerHTML = `<div class="success">✅ Load user bookings thành công: ${userBookings.length} vé</div>`;
+                    
+                    // Hiển thị bookings
+                    if (userBookings.length === 0) {
+                        displayDiv.innerHTML = '<p>Không có vé nào</p>';
+                    } else {
+                        displayDiv.innerHTML = userBookings.map(booking => `
+                            <div class="movie-card">
+                                <h4>${booking.movieTitle}</h4>
+                                <p>Suất chiếu: ${booking.time} - ${booking.date}</p>
+                                <p>Ghế: ${Array.isArray(booking.seats) ? booking.seats.join(', ') : (typeof booking.seats === 'string' ? JSON.parse(booking.seats).join(', ') : 'N/A')}</p>
+                                <p>Tổng tiền: ${booking.totalPrice.toLocaleString('vi-VN')} VNĐ</p>
+                            </div>
+                        `).join('');
+                    }
+                    
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Lỗi: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${error.message}</div>`;
+            }
+        }
+        
+        // Auto load khi page load
+        window.addEventListener('load', () => {
+            testLoadMovies();
+            testLoadShowtimes();
+        });
+    </script>
+</body>
+</html>

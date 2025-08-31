@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test New Movies - Cinema</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-film"></i> Cinema - Test New Movies</h1>
+            <p>Kiểm tra hiển thị các bộ phim mới</p>
+        </header>
+
+        <main class="main-content">
+            <section class="movies-section">
+                <h2><i class="fas fa-star"></i> Tất cả Phim</h2>
+                <div class="movies-grid" id="moviesGrid">
+                    <div class="loading">Đang tải danh sách phim...</div>
+                </div>
+            </section>
+
+            <section class="categories-section">
+                <h2><i class="fas fa-tags"></i> Thể loại Phim</h2>
+                <div class="categories-grid" id="categoriesGrid">
+                    <div class="loading">Đang tải thể loại...</div>
+                </div>
+            </section>
+
+            <section class="showtimes-section">
+                <h2><i class="fas fa-clock"></i> Lịch Chiếu</h2>
+                <div class="showtimes-list" id="showtimesList">
+                    <div class="loading">Đang tải lịch chiếu...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Load movies
+        async function loadMovies() {
+            try {
+                console.log('Loading movies...');
+                const response = await fetch('/api/movies');
+                const movies = await response.json();
+                console.log('Movies loaded:', movies);
+                renderMovies(movies);
+            } catch (error) {
+                console.error('Error loading movies:', error);
+                document.getElementById('moviesGrid').innerHTML = '<div class="error">Lỗi khi tải danh sách phim</div>';
+            }
+        }
+
+        // Render movies
+        function renderMovies(movies) {
+            const moviesGrid = document.getElementById('moviesGrid');
+            if (!movies || movies.length === 0) {
+                moviesGrid.innerHTML = '<div class="no-movies">Không có phim nào</div>';
+                return;
+            }
+
+            const moviesHTML = movies.map(movie => `
+                <div class="movie-card">
+                    <div class="movie-image">
+                        <img src="${movie.image}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450/cccccc/666666?text=No+Image'">
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <p class="movie-genre"><i class="fas fa-tag"></i> ${movie.genre}</p>
+                        <p class="movie-duration"><i class="fas fa-clock"></i> ${movie.duration}</p>
+                        <p class="movie-rating"><i class="fas fa-star"></i> ${movie.rating}</p>
+                        <p class="movie-description">${movie.description}</p>
+                        <div class="movie-actions">
+                            <button class="btn-primary" onclick="viewTrailer('${movie.trailer}')">
+                                <i class="fas fa-play"></i> Xem Trailer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            moviesGrid.innerHTML = moviesHTML;
+        }
+
+        // Load categories
+        async function loadCategories() {
+            try {
+                console.log('Loading categories...');
+                const response = await fetch('/api/categories');
+                const categories = await response.json();
+                console.log('Categories loaded:', categories);
+                renderCategories(categories);
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                document.getElementById('categoriesGrid').innerHTML = '<div class="error">Lỗi khi tải thể loại</div>';
+            }
+        }
+
+        // Render categories
+        function renderCategories(categories) {
+            const categoriesGrid = document.getElementById('categoriesGrid');
+            if (!categories || categories.length === 0) {
+                categoriesGrid.innerHTML = '<div class="no-categories">Không có thể loại nào</div>';
+                return;
+            }
+
+            const categoriesHTML = categories.map(category => `
+                <div class="category-card" style="border-left: 4px solid ${category.color}">
+                    <h3>${category.name}</h3>
+                    <p>${category.description}</p>
+                </div>
+            `).join('');
+
+            categoriesGrid.innerHTML = categoriesHTML;
+        }
+
+        // Load showtimes
+        async function loadShowtimes() {
+            try {
+                console.log('Loading showtimes...');
+                const response = await fetch('/api/showtimes');
+                const showtimes = await response.json();
+                console.log('Showtimes loaded:', showtimes);
+                renderShowtimes(showtimes);
+            } catch (error) {
+                console.error('Error loading showtimes:', error);
+                document.getElementById('showtimesList').innerHTML = '<div class="error">Lỗi khi tải lịch chiếu</div>';
+            }
+        }
+
+        // Render showtimes
+        function renderShowtimes(showtimes) {
+            const showtimesList = document.getElementById('showtimesList');
+            if (!showtimes || showtimes.length === 0) {
+                showtimesList.innerHTML = '<div class="no-showtimes">Không có lịch chiếu nào</div>';
+                return;
+            }
+
+            const showtimesHTML = showtimes.map(showtime => `
+                <div class="showtime-item">
+                    <div class="showtime-info">
+                        <h4>Phim ID: ${showtime.movieId}</h4>
+                        <p><i class="fas fa-clock"></i> ${showtime.time}</p>
+                        <p><i class="fas fa-calendar"></i> ${showtime.date}</p>
+                        <p><i class="fas fa-money-bill"></i> ${showtime.price.toLocaleString('vi-VN')} VNĐ</p>
+                        <p><i class="fas fa-chair"></i> ${showtime.availableSeats}/${showtime.maxSeats} ghế</p>
+                    </div>
+                </div>
+            `).join('');
+
+            showtimesList.innerHTML = showtimesHTML;
+        }
+
+        // View trailer
+        function viewTrailer(trailerUrl) {
+            if (trailerUrl) {
+                window.open(trailerUrl, '_blank');
+            } else {
+                alert('Không có trailer cho phim này');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Page loaded, starting to load data...');
+            
+            try {
+                await Promise.all([
+                    loadMovies(),
+                    loadCategories(),
+                    loadShowtimes()
+                ]);
+                console.log('All data loaded successfully');
+            } catch (error) {
+                console.error('Error during initialization:', error);
+            }
+        });
+    </script>
+
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            gap: 40px;
+        }
+
+        .movies-section, .categories-section, .showtimes-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .movies-section h2, .categories-section h2, .showtimes-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .movie-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .movie-image img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+
+        .movie-info {
+            padding: 20px;
+        }
+
+        .movie-title {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.3em;
+        }
+
+        .movie-genre, .movie-duration, .movie-rating {
+            margin: 8px 0;
+            color: #666;
+        }
+
+        .movie-description {
+            margin: 15px 0;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .movie-actions {
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .category-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .category-card p {
+            margin: 0;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .showtimes-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .showtime-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .showtime-info h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+
+        .showtime-info p {
+            margin: 8px 0;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .no-movies, .no-categories, .no-showtimes {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .movies-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>

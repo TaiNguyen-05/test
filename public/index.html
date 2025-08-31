@@ -31,6 +31,9 @@
             </div>
             <div class="user-info" id="userInfo" style="display: none;">
                 <span id="userName"></span>
+                <a href="/my-tickets.html" class="btn-my-tickets">
+                    <i class="fas fa-ticket-alt"></i> Vé của tôi
+                </a>
                 <button id="logoutBtn" class="btn-secondary">
                     <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </button>
@@ -312,6 +315,61 @@
                     <div class="booking-summary" id="bookingSummary">
                         <h4><i class="fas fa-receipt"></i> Tóm Tắt Đặt Vé</h4>
                         <div id="summaryDetails"></div>
+                        
+                        <!-- Payment Methods Section -->
+                        <div class="payment-section" id="paymentSection" style="display: none;">
+                            <h4><i class="fas fa-credit-card"></i> Phương Thức Thanh Toán</h4>
+                            <div class="payment-methods">
+                                <div class="payment-method" onclick="selectPaymentMethod('cash')">
+                                    <input type="radio" name="paymentMethod" value="cash" id="cashPayment">
+                                    <label for="cashPayment">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span>Tiền Mặt</span>
+                                    </label>
+                                </div>
+                                <div class="payment-method" onclick="selectPaymentMethod('bank')">
+                                    <input type="radio" name="paymentMethod" value="bank" id="bankPayment">
+                                    <label for="bankPayment">
+                                        <i class="fas fa-university"></i>
+                                        <span>Chuyển Khoản Ngân Hàng</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                                                         <!-- Bank Transfer Details -->
+                             <div class="bank-details" id="bankDetails" style="display: none;">
+                                 <h5><i class="fas fa-info-circle"></i> Thông Tin Chuyển Khoản</h5>
+                                 <div class="bank-info">
+                                     <div class="bank-item">
+                                         <span class="label">Ngân hàng:</span>
+                                         <span class="value">MB Bank</span>
+                                     </div>
+                                     <div class="bank-item">
+                                         <span class="label">Số tài khoản:</span>
+                                         <span class="value">0345642033</span>
+                                         <button class="btn-copy" onclick="copyToClipboard('0345642033')">
+                                             <i class="fas fa-copy"></i>
+                                         </button>
+                                     </div>
+                                     <div class="bank-item">
+                                         <span class="label">Chủ tài khoản:</span>
+                                         <span class="value">NGUYEN LE HOANG MINH</span>
+                                     </div>
+                                     <div class="bank-item">
+                                         <span class="label">Nội dung:</span>
+                                         <span class="value" id="transferContent">CINEMA <SO GHE></span>
+                                         <button class="btn-copy" onclick="copyToClipboard(document.getElementById('transferContent').textContent)">
+                                             <i class="fas fa-copy"></i>
+                                         </button>
+                                     </div>
+                                 </div>
+                                <div class="payment-note">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Vui lòng chuyển khoản đúng số tiền và nội dung để vé được xác nhận tự động</span>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <button id="confirmBookingBtn" class="btn-primary">
                             <i class="fas fa-check-circle"></i> Xác Nhận Đặt Vé
                         </button>

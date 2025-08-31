@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Movies Loading</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .movie-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .movie-card img { max-width: 200px; height: auto; }
+        .debug-info { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Debug Movies Loading</h1>
+    
+    <div class="debug-info">
+        <h3>Debug Info</h3>
+        <div id="debugInfo"></div>
+    </div>
+    
+    <div>
+        <button onclick="testLoadMovies()">Test Load Movies</button>
+        <button onclick="testLoadShowtimes()">Test Load Showtimes</button>
+        <button onclick="clearDisplay()">Clear Display</button>
+    </div>
+    
+    <div id="moviesDisplay"></div>
+    <div id="showtimesDisplay"></div>
+
+    <script>
+        let movies = [];
+        let showtimes = [];
+        
+        function updateDebugInfo(message) {
+            const debugDiv = document.getElementById('debugInfo');
+            debugDiv.innerHTML += `<p>${new Date().toLocaleTimeString()}: ${message}</p>`;
+        }
+        
+        async function testLoadMovies() {
+            updateDebugInfo('Testing loadMovies...');
+            
+            try {
+                const response = await fetch('/api/movies');
+                updateDebugInfo(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    movies = await response.json();
+                    updateDebugInfo(`Movies loaded: ${movies.length} phim`);
+                    updateDebugInfo(`Movies data: ${JSON.stringify(movies, null, 2)}`);
+                    
+                    displayMovies();
+                } else {
+                    updateDebugInfo(`Error: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                updateDebugInfo(`Exception: ${error.message}`);
+            }
+        }
+        
+        async function testLoadShowtimes() {
+            updateDebugInfo('Testing loadShowtimes...');
+            
+            try {
+                const response = await fetch('/api/showtimes');
+                updateDebugInfo(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    showtimes = await response.json();
+                    updateDebugInfo(`Showtimes loaded: ${showtimes.length} suất chiếu`);
+                    updateDebugInfo(`Showtimes data: ${JSON.stringify(showtimes, null, 2)}`);
+                    
+                    displayShowtimes();
+                } else {
+                    updateDebugInfo(`Error: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                updateDebugInfo(`Exception: ${error.message}`);
+            }
+        }
+        
+        function displayMovies() {
+            const displayDiv = document.getElementById('moviesDisplay');
+            
+            if (movies.length === 0) {
+                displayDiv.innerHTML = '<p>Không có phim nào</p>';
+                return;
+            }
+            
+            displayDiv.innerHTML = '<h3>Movies:</h3>' + movies.map((movie, index) => `
+                <div class="movie-card">
+                    <img src="${movie.image}" alt="${movie.title}">
+                    <h4>${movie.title}</h4>
+                    <p>Thể loại: ${movie.genre}</p>
+                    <p>Thời lượng: ${movie.duration}</p>
+                    <p>Đánh giá: ${movie.rating}</p>
+                    <p>ID: ${movie.id}</p>
+                </div>
+            `).join('');
+        }
+        
+        function displayShowtimes() {
+            const displayDiv = document.getElementById('showtimesDisplay');
+            
+            if (showtimes.length === 0) {
+                displayDiv.innerHTML = '<p>Không có suất chiếu nào</p>';
+                return;
+            }
+            
+            displayDiv.innerHTML = '<h3>Showtimes:</h3>' + showtimes.map((showtime, index) => `
+                <div class="movie-card">
+                    <h4>${showtime.movieTitle}</h4>
+                    <p>Thời gian: ${showtime.time} - ${showtime.date}</p>
+                    <p>Giá: ${showtime.price.toLocaleString('vi-VN')} VNĐ</p>
+                    <p>Còn lại: ${showtime.availableSeats} ghế</p>
+                    <p>Movie ID: ${showtime.movieId}</p>
+                    <p>Showtime ID: ${showtime.id}</p>
+                </div>
+            `).join('');
+        }
+        
+        function clearDisplay() {
+            document.getElementById('moviesDisplay').innerHTML = '';
+            document.getElementById('showtimesDisplay').innerHTML = '';
+            document.getElementById('debugInfo').innerHTML = '';
+        }
+        
+        // Auto test khi page load
+        window.addEventListener('load', () => {
+            updateDebugInfo('Page loaded, starting tests...');
+            setTimeout(() => {
+                testLoadMovies();
+                testLoadShowtimes();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
