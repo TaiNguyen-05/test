@@ -608,27 +608,60 @@ function renderBookingsTable() {
     const tbody = document.getElementById('bookingsTableBody');
     if (!tbody) return;
     
-    tbody.innerHTML = bookings.map(booking => `
-        <tr>
-            <td><code>#${booking.id.slice(0, 8)}</code></td>
-            <td>${booking.userName}</td>
-            <td>${booking.movieTitle}</td>
-            <td>${booking.showtime} - ${formatDate(booking.date)}</td>
-            <td>${booking.seats.join(', ')}</td>
-            <td>${formatPrice(booking.totalPrice)}</td>
-            <td>
-                <span class="status-badge confirmed">Đã xác nhận</span>
-            </td>
-            <td>
-                <button class="btn-edit" onclick="viewBooking(${booking.id})">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="btn-delete" onclick="cancelBooking(${booking.id})">
-                    <i class="fas fa-ban"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = bookings.map(booking => {
+        // Parse seats từ JSON string
+        let seatsArray = [];
+        try {
+            seatsArray = JSON.parse(booking.seats);
+        } catch (e) {
+            seatsArray = [booking.seats];
+        }
+        
+        // Xác định status badge
+        let statusBadge = '';
+        let statusClass = '';
+        switch(booking.status) {
+            case 'confirmed':
+                statusBadge = 'Đã xác nhận';
+                statusClass = 'confirmed';
+                break;
+            case 'cancelled':
+                statusBadge = 'Đã hủy';
+                statusClass = 'cancelled';
+                break;
+            case 'pending':
+                statusBadge = 'Chờ xác nhận';
+                statusClass = 'pending';
+                break;
+            default:
+                statusBadge = booking.status;
+                statusClass = 'default';
+        }
+        
+        return `
+            <tr>
+                <td><code>#${booking.id.slice(0, 8)}</code></td>
+                <td>${booking.userName}</td>
+                <td>${booking.movieTitle}</td>
+                <td>${booking.showtime} - ${formatDate(booking.showtimeDate)}</td>
+                <td>${seatsArray.join(', ')}</td>
+                <td>${formatPrice(booking.totalPrice)}</td>
+                <td>
+                    <span class="status-badge ${statusClass}">
+                        ${statusBadge}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-edit" onclick="viewBooking('${booking.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-delete" onclick="cancelBooking('${booking.id}')">
+                        <i class="fas fa-ban"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderActivityList() {
@@ -694,7 +727,7 @@ function filterBookings() {
         const matchesSearch = booking.userName.toLowerCase().includes(searchTerm) || 
                             booking.movieTitle.toLowerCase().includes(searchTerm);
         const matchesStatus = !statusFilter || booking.status === statusFilter;
-        const matchesDate = !dateFilter || booking.date === dateFilter;
+        const matchesDate = !dateFilter || booking.showtimeDate === dateFilter;
         
         return matchesSearch && matchesStatus && matchesDate;
     });

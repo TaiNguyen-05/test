@@ -50,6 +50,7 @@ function initializeDatabase() {
       trailer TEXT,
       subtitles TEXT,
       status TEXT DEFAULT 'active',
+      isDeleted INTEGER DEFAULT 0,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -91,6 +92,7 @@ function initializeDatabase() {
       totalPrice INTEGER NOT NULL,
       paymentMethod TEXT DEFAULT 'cash',
       status TEXT DEFAULT 'confirmed',
+      isDeleted INTEGER DEFAULT 0,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (showtimeId) REFERENCES showtimes(id) ON DELETE CASCADE
@@ -110,6 +112,52 @@ function initializeDatabase() {
   `);
 
   console.log('Database đã được khởi tạo thành công!');
+}
+
+// Migration: Thêm cột mới nếu chưa có
+function migrateDatabase() {
+  console.log('Đang kiểm tra và cập nhật database...');
+  
+  try {
+    // Kiểm tra xem cột paymentMethod đã tồn tại chưa
+    const columns = db.pragma('table_info(bookings)');
+    const hasPaymentMethod = columns.some(col => col.name === 'paymentMethod');
+    
+    if (!hasPaymentMethod) {
+      console.log('Thêm cột paymentMethod vào bảng bookings...');
+      db.exec('ALTER TABLE bookings ADD COLUMN paymentMethod TEXT DEFAULT "cash"');
+      console.log('Đã thêm cột paymentMethod thành công!');
+    } else {
+      console.log('Cột paymentMethod đã tồn tại.');
+    }
+    
+    // Kiểm tra xem cột isDeleted đã tồn tại trong bảng movies chưa
+    const movieColumns = db.pragma('table_info(movies)');
+    const hasIsDeleted = movieColumns.some(col => col.name === 'isDeleted');
+    
+    if (!hasIsDeleted) {
+      console.log('Thêm cột isDeleted vào bảng movies...');
+      db.exec('ALTER TABLE movies ADD COLUMN isDeleted INTEGER DEFAULT 0');
+      console.log('Đã thêm cột isDeleted thành công!');
+    } else {
+      console.log('Cột isDeleted đã tồn tại.');
+    }
+    
+    // Kiểm tra xem cột isDeleted đã tồn tại trong bảng bookings chưa
+    const bookingColumns = db.pragma('table_info(bookings)');
+    const hasBookingIsDeleted = bookingColumns.some(col => col.name === 'isDeleted');
+    
+    if (!hasBookingIsDeleted) {
+      console.log('Thêm cột isDeleted vào bảng bookings...');
+      db.exec('ALTER TABLE bookings ADD COLUMN isDeleted INTEGER DEFAULT 0');
+      console.log('Đã thêm cột isDeleted thành công!');
+    } else {
+      console.log('Cột isDeleted đã tồn tại.');
+    }
+    
+  } catch (error) {
+    console.error('Lỗi khi migration database:', error);
+  }
 }
 
 // Chèn dữ liệu mẫu
@@ -357,78 +405,6 @@ function insertSampleData() {
       insertMovie.run(...movie);
     });
 
-    // Liên kết movies với categories
-    const insertMovieCategory = db.prepare(`
-      INSERT INTO movie_categories (movieId, categoryId)
-      VALUES (?, ?)
-    `);
-
-    // Kiểm tra và thêm liên kết phim-thể loại
-    const checkMovieCategory = db.prepare(`
-      SELECT COUNT(*) as count FROM movie_categories 
-      WHERE movieId = ? AND categoryId = ?
-    `);
-
-    // Avengers: Endgame - Hành động, Viễn tưởng
-    if (checkMovieCategory.get(1, 1).count === 0) insertMovieCategory.run(1, 1); // Hành động
-    if (checkMovieCategory.get(1, 2).count === 0) insertMovieCategory.run(1, 2); // Viễn tưởng
-
-    // Spider-Man: No Way Home - Hành động, Phiêu lưu
-    if (checkMovieCategory.get(2, 1).count === 0) insertMovieCategory.run(2, 1); // Hành động
-    if (checkMovieCategory.get(2, 3).count === 0) insertMovieCategory.run(2, 3); // Phiêu lưu
-
-    // Black Panther: Wakanda Forever - Hành động, Siêu anh hùng
-    if (checkMovieCategory.get(3, 1).count === 0) insertMovieCategory.run(3, 1); // Hành động
-    if (checkMovieCategory.get(3, 4).count === 0) insertMovieCategory.run(3, 4); // Siêu anh hùng
-
-    // The Batman - Hành động, Tội phạm
-    if (checkMovieCategory.get(4, 1).count === 0) insertMovieCategory.run(4, 1); // Hành động
-    if (checkMovieCategory.get(4, 7).count === 0) insertMovieCategory.run(4, 7); // Tội phạm
-
-    // Doctor Strange - Viễn tưởng, Siêu anh hùng
-    if (checkMovieCategory.get(5, 2).count === 0) insertMovieCategory.run(5, 2); // Viễn tưởng
-    if (checkMovieCategory.get(5, 4).count === 0) insertMovieCategory.run(5, 4); // Siêu anh hùng
-
-    // Top Gun: Maverick - Hành động, Phiêu lưu
-    if (checkMovieCategory.get(6, 1).count === 0) insertMovieCategory.run(6, 1); // Hành động
-    if (checkMovieCategory.get(6, 3).count === 0) insertMovieCategory.run(6, 3); // Phiêu lưu
-
-    // Jurassic World - Viễn tưởng, Phiêu lưu
-    if (checkMovieCategory.get(7, 2).count === 0) insertMovieCategory.run(7, 2); // Viễn tưởng
-    if (checkMovieCategory.get(7, 3).count === 0) insertMovieCategory.run(7, 3); // Phiêu lưu
-
-    // The Conjuring - Kinh dị, Tội phạm
-    if (checkMovieCategory.get(8, 5).count === 0) insertMovieCategory.run(8, 5); // Kinh dị
-    if (checkMovieCategory.get(8, 7).count === 0) insertMovieCategory.run(8, 7); // Tội phạm
-
-    // Free Guy - Hành động, Hài
-    if (checkMovieCategory.get(9, 1).count === 0) insertMovieCategory.run(9, 1); // Hành động
-    if (checkMovieCategory.get(9, 6).count === 0) insertMovieCategory.run(9, 6); // Hài
-
-    // Dune - Viễn tưởng, Phiêu lưu
-    if (checkMovieCategory.get(10, 2).count === 0) insertMovieCategory.run(10, 2); // Viễn tưởng
-    if (checkMovieCategory.get(10, 3).count === 0) insertMovieCategory.run(10, 3); // Phiêu lưu
-
-    // Shang-Chi - Hành động, Siêu anh hùng
-    if (checkMovieCategory.get(11, 1).count === 0) insertMovieCategory.run(11, 1); // Hành động
-    if (checkMovieCategory.get(11, 4).count === 0) insertMovieCategory.run(11, 4); // Siêu anh hùng
-
-    // No Time to Die - Hành động, Tội phạm
-    if (checkMovieCategory.get(12, 1).count === 0) insertMovieCategory.run(12, 1); // Hành động
-    if (checkMovieCategory.get(12, 7).count === 0) insertMovieCategory.run(12, 7); // Tội phạm
-
-    // The Suicide Squad - Hành động, Hài
-    if (checkMovieCategory.get(13, 1).count === 0) insertMovieCategory.run(13, 1); // Hành động
-    if (checkMovieCategory.get(13, 6).count === 0) insertMovieCategory.run(13, 6); // Hài
-
-    // A Quiet Place Part II - Kinh dị, Viễn tưởng
-    if (checkMovieCategory.get(14, 5).count === 0) insertMovieCategory.run(14, 5); // Kinh dị
-    if (checkMovieCategory.get(14, 2).count === 0) insertMovieCategory.run(14, 2); // Viễn tưởng
-
-    // Cruella - Hài, Tội phạm
-    if (checkMovieCategory.get(15, 6).count === 0) insertMovieCategory.run(15, 6); // Hài
-    if (checkMovieCategory.get(15, 7).count === 0) insertMovieCategory.run(15, 7); // Tội phạm
-
     // Chèn showtimes
     const insertShowtime = db.prepare(`
       INSERT INTO showtimes (movieId, time, date, price, availableSeats, maxSeats, status)
@@ -476,52 +452,6 @@ function insertSampleData() {
 
 // Khởi tạo database khi import module
 initializeDatabase();
-
-// Migration: Thêm cột paymentMethod nếu chưa có
-function migrateDatabase() {
-  console.log('Đang kiểm tra và cập nhật database...');
-  
-  try {
-    // Kiểm tra xem cột paymentMethod đã tồn tại chưa
-    const columns = db.pragma('table_info(bookings)');
-    const hasPaymentMethod = columns.some(col => col.name === 'paymentMethod');
-    
-    if (!hasPaymentMethod) {
-      console.log('Thêm cột paymentMethod vào bảng bookings...');
-      db.exec('ALTER TABLE bookings ADD COLUMN paymentMethod TEXT DEFAULT "cash"');
-      console.log('Đã thêm cột paymentMethod thành công!');
-    } else {
-      console.log('Cột paymentMethod đã tồn tại.');
-    }
-    
-    // Kiểm tra xem cột isDeleted đã tồn tại trong bảng movies chưa
-    const movieColumns = db.pragma('table_info(movies)');
-    const hasIsDeleted = movieColumns.some(col => col.name === 'isDeleted');
-    
-    if (!hasIsDeleted) {
-      console.log('Thêm cột isDeleted vào bảng movies...');
-      db.exec('ALTER TABLE movies ADD COLUMN isDeleted INTEGER DEFAULT 0');
-      console.log('Đã thêm cột isDeleted thành công!');
-    } else {
-      console.log('Cột isDeleted đã tồn tại.');
-    }
-    
-    // Kiểm tra xem cột isDeleted đã tồn tại trong bảng bookings chưa
-    const bookingColumns = db.pragma('table_info(bookings)');
-    const hasBookingIsDeleted = bookingColumns.some(col => col.name === 'isDeleted');
-    
-    if (!hasBookingIsDeleted) {
-      console.log('Thêm cột isDeleted vào bảng bookings...');
-      db.exec('ALTER TABLE bookings ADD COLUMN isDeleted INTEGER DEFAULT 0');
-      console.log('Đã thêm cột isDeleted thành công!');
-    } else {
-      console.log('Cột isDeleted đã tồn tại.');
-    }
-    
-  } catch (error) {
-    console.error('Lỗi khi migration database:', error);
-  }
-}
 
 // Chạy migration trước khi insert dữ liệu mẫu
 migrateDatabase();

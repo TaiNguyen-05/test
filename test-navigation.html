@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Navigation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .nav-test { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
+        .btn { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        .btn:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+    </style>
+</head>
+<body>
+    <h1>Test Navigation - Cinema Booking</h1>
+    
+    <div class="nav-test">
+        <h3>Test Chuyển Hướng</h3>
+        <button class="btn" onclick="goToHome()">🏠 Trang Chủ</button>
+        <button class="btn btn-success" onclick="goToMyTickets()">🎫 Vé của tôi</button>
+        <button class="btn btn-warning" onclick="goToAdmin()">⚙️ Admin Panel</button>
+    </div>
+    
+    <div class="nav-test">
+        <h3>Test API Endpoints</h3>
+        <button class="btn" onclick="testMoviesAPI()">🎬 Test Movies API</button>
+        <button class="btn" onclick="testShowtimesAPI()">⏰ Test Showtimes API</button>
+        <button class="btn" onclick="testBookingsAPI()">🎫 Test Bookings API</button>
+    </div>
+    
+    <div class="nav-test">
+        <h3>Test Files</h3>
+        <button class="btn" onclick="testSimpleTest()">🧪 Simple Test</button>
+        <button class="btn" onclick="testDebugMovies()">🔍 Debug Movies</button>
+        <button class="btn" onclick="testFrontend()">🖥️ Test Frontend</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.style.cssText = `
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 5px;
+                background: ${type === 'error' ? '#f8d7da' : type === 'success' ? '#d4edda' : '#d1ecf1'};
+                color: ${type === 'error' ? '#721c24' : type === 'success' ? '#155724' : '#0c5460'};
+            `;
+            resultDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            resultsDiv.appendChild(resultDiv);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => resultDiv.remove(), 5000);
+        }
+        
+        function goToHome() {
+            showResult('Chuyển đến trang chủ...', 'info');
+            setTimeout(() => window.location.href = '/', 1000);
+        }
+        
+        function goToMyTickets() {
+            showResult('Chuyển đến trang Vé của tôi...', 'info');
+            setTimeout(() => window.location.href = '/my-tickets.html', 1000);
+        }
+        
+        function goToAdmin() {
+            showResult('Chuyển đến Admin Panel...', 'info');
+            setTimeout(() => window.location.href = '/admin.html', 1000);
+        }
+        
+        async function testMoviesAPI() {
+            showResult('Đang test Movies API...', 'info');
+            try {
+                const response = await fetch('/api/movies');
+                if (response.ok) {
+                    const movies = await response.json();
+                    showResult(`✅ Movies API hoạt động: ${movies.length} phim`, 'success');
+                } else {
+                    showResult(`❌ Movies API lỗi: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Movies API exception: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testShowtimesAPI() {
+            showResult('Đang test Showtimes API...', 'info');
+            try {
+                const response = await fetch('/api/showtimes');
+                if (response.ok) {
+                    const showtimes = await response.json();
+                    showResult(`✅ Showtimes API hoạt động: ${showtimes.length} suất chiếu`, 'success');
+                } else {
+                    showResult(`❌ Showtimes API lỗi: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Showtimes API exception: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testBookingsAPI() {
+            showResult('Đang test Bookings API...', 'info');
+            try {
+                const response = await fetch('/api/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    showResult(`✅ Stats API hoạt động: ${stats.totalBookings} bookings`, 'success');
+                } else {
+                    showResult(`❌ Stats API lỗi: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Stats API exception: ${error.message}`, 'error');
+            }
+        }
+        
+        function testSimpleTest() {
+            showResult('Chuyển đến Simple Test...', 'info');
+            setTimeout(() => window.location.href = '/simple-test.html', 1000);
+        }
+        
+        function testDebugMovies() {
+            showResult('Chuyển đến Debug Movies...', 'info');
+            setTimeout(() => window.location.href = '/debug-movies.html', 1000);
+        }
+        
+        function testFrontend() {
+            showResult('Chuyển đến Test Frontend...', 'info');
+            setTimeout(() => window.location.href = '/test-frontend.html', 1000);
+        }
+        
+        // Auto test APIs khi page load
+        window.addEventListener('load', () => {
+            showResult('Page loaded, ready for testing!', 'success');
+        });
+    </script>
+</body>
+</html>

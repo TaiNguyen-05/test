@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Movies Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .movie-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .movie-card img { max-width: 200px; height: auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Simple Movies Test</h1>
+    
+    <div id="status"></div>
+    
+    <div id="moviesContainer"></div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        async function loadAndDisplayMovies() {
+            updateStatus('Đang load movies...', 'info');
+            
+            try {
+                const response = await fetch('/api/movies');
+                
+                if (response.ok) {
+                    const movies = await response.json();
+                    updateStatus(`✅ Load thành công: ${movies.length} phim`, 'success');
+                    
+                    displayMovies(movies);
+                } else {
+                    updateStatus(`❌ Lỗi: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus(`❌ Exception: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayMovies(movies) {
+            const container = document.getElementById('moviesContainer');
+            
+            if (movies.length === 0) {
+                container.innerHTML = '<p>Không có phim nào</p>';
+                return;
+            }
+            
+            container.innerHTML = movies.map((movie, index) => `
+                <div class="movie-card">
+                    <img src="${movie.image}" alt="${movie.title}">
+                    <h3>${movie.title}</h3>
+                    <p><strong>Thể loại:</strong> ${movie.genre}</p>
+                    <p><strong>Thời lượng:</strong> ${movie.duration}</p>
+                    <p><strong>Đánh giá:</strong> ${movie.rating}</p>
+                    <p><strong>ID:</strong> ${movie.id}</p>
+                </div>
+            `).join('');
+        }
+        
+        // Load movies khi page load
+        window.addEventListener('load', () => {
+            updateStatus('Page loaded, starting...', 'info');
+            setTimeout(loadAndDisplayMovies, 500);
+        });
+    </script>
+</body>
+</html>

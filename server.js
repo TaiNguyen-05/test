@@ -5,8 +5,8 @@ const cors = require('cors');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-// Import database và models
-const db = require('./database');
+// Import database
+const db = require('./database-simple');
 const User = require('./models/User');
 const Movie = require('./models/Movie');
 const Category = require('./models/Category');

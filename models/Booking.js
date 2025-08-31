@@ -5,7 +5,7 @@ class Booking {
   static getAll() {
     const stmt = db.prepare(`
       SELECT b.*, u.name as userName, u.email as userEmail, u.phone as userPhone,
-             s.time, s.date, s.price as showtimePrice,
+             s.time as showtime, s.date as showtimeDate, s.price as showtimePrice,
              m.title as movieTitle, m.image as movieImage
       FROM bookings b
       INNER JOIN users u ON b.userId = u.id
@@ -76,8 +76,8 @@ class Booking {
   // Tạo booking mới
   static create(bookingData) {
     const stmt = db.prepare(`
-      INSERT INTO bookings (id, userId, showtimeId, movieTitle, seats, totalPrice, status, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO bookings (id, userId, showtimeId, movieTitle, seats, totalPrice, paymentMethod, status, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     const result = stmt.run(
@@ -87,11 +87,13 @@ class Booking {
       bookingData.movieTitle,
       JSON.stringify(bookingData.seats),
       bookingData.totalPrice,
+      bookingData.paymentMethod || 'cash',
       bookingData.status || 'confirmed',
       bookingData.createdAt || new Date().toISOString()
     );
     
-    return result.lastInsertRowid;
+    // Trả về true nếu insert thành công
+    return result.changes > 0;
   }
 
   // Cập nhật booking

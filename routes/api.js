@@ -7,6 +7,7 @@ const Movie = require('../models/Movie');
 const Category = require('../models/Category');
 const Showtime = require('../models/Showtime');
 const Booking = require('../models/Booking');
+const User = require('../models/User'); // Added User model import
 
 // Public API endpoints
 router.get('/movies', (req, res) => {
@@ -167,23 +168,113 @@ router.get('/stats', (req, res) => {
   }
 });
 
+// Endpoint đăng ký
+router.post('/auth/register', (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+    
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({ error: 'Thiếu thông tin cần thiết để đăng ký' });
+    }
+    
+    // Kiểm tra email đã tồn tại
+    if (User.emailExists(email)) {
+      return res.status(400).json({ error: 'Email đã được sử dụng!' });
+    }
+    
+    // Tạo user mới
+    const userId = uuidv4();
+    const newUser = {
+      id: userId,
+      name: name,
+      email: email,
+      phone: phone,
+      password: password, // Trong thực tế nên hash password
+      role: "user",
+      status: "active",
+      createdAt: new Date().toISOString()
+    };
+    
+    User.create(newUser);
+    
+    // Trả về user (không bao gồm password)
+    const { password: _, ...userWithoutPassword } = newUser;
+    
+    res.status(201).json({
+      message: 'Đăng ký thành công!',
+      user: userWithoutPassword
+    });
+    
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'Lỗi khi đăng ký' });
+  }
+});
+
+// Endpoint đăng nhập
+router.post('/auth/login', (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Thiếu email hoặc mật khẩu' });
+    }
+    
+    // Tìm user theo email
+    const user = User.getByEmail(email);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Email hoặc mật khẩu không đúng' });
+    }
+    
+    // Kiểm tra password (trong thực tế nên so sánh hash)
+    if (user.password !== password) {
+      return res.status(401).json({ error: 'Email hoặc mật khẩu không đúng' });
+    }
+    
+    // Kiểm tra trạng thái user
+    if (user.status !== 'active') {
+      return res.status(401).json({ error: 'Tài khoản đã bị khóa' });
+    }
+    
+    // Trả về user (không bao gồm password)
+    const { password: _, ...userWithoutPassword } = user;
+    
+    res.json({
+      message: 'Đăng nhập thành công!',
+      user: userWithoutPassword
+    });
+    
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ error: 'Lỗi khi đăng nhập' });
+  }
+});
+
 // Endpoint để đặt vé
 router.post('/bookings', (req, res) => {
   try {
-    const { userId, showtimeId, seats, totalPrice } = req.body;
+    console.log('Booking request received:', req.body); // Debug log
+    
+    const { userId, showtimeId, seats, totalPrice, paymentMethod } = req.body;
     
     if (!userId || !showtimeId || !seats || !totalPrice) {
+      console.log('Missing required fields:', { userId, showtimeId, seats, totalPrice }); // Debug log
       return res.status(400).json({ error: 'Thiếu thông tin cần thiết để đặt vé' });
     }
     
     // Kiểm tra showtime có tồn tại không
     const showtime = Showtime.getById(parseInt(showtimeId));
+    console.log('Showtime found:', showtime); // Debug log
+    
     if (!showtime) {
       return res.status(404).json({ error: 'Suất chiếu không tồn tại' });
     }
     
     // Kiểm tra ghế có còn trống không
     const existingBookings = Booking.getByShowtimeId(parseInt(showtimeId));
+    console.log('Existing bookings:', existingBookings); // Debug log
+    
     const bookedSeats = [];
     existingBookings.forEach(booking => {
       const bookingSeats = JSON.parse(booking.seats);
@@ -193,12 +284,15 @@ router.post('/bookings', (req, res) => {
     const requestedSeats = Array.isArray(seats) ? seats : [seats];
     const isSeatAvailable = requestedSeats.every(seat => !bookedSeats.includes(seat));
     
+    console.log('Seat availability check:', { requestedSeats, bookedSeats, isSeatAvailable }); // Debug log
+    
     if (!isSeatAvailable) {
       return res.status(400).json({ error: 'Một số ghế đã được đặt trước đó' });
     }
     
     // Lấy thông tin phim
     const movie = Movie.getById(showtime.movieId);
+    console.log('Movie found:', movie); // Debug log
     
     // Tạo booking mới
     const bookingId = uuidv4();
@@ -209,15 +303,21 @@ router.post('/bookings', (req, res) => {
       movieTitle: movie.title,
       seats: requestedSeats,
       totalPrice: parseFloat(totalPrice),
+      paymentMethod: paymentMethod || 'cash',
       status: 'confirmed',
       createdAt: new Date().toISOString()
     };
     
+    console.log('Creating new booking:', newBooking); // Debug log
+    
     const result = Booking.create(newBooking);
+    console.log('Booking creation result:', result); // Debug log
     
     if (result) {
       // Lấy booking vừa tạo để trả về
       const createdBooking = Booking.getById(bookingId);
+      console.log('Created booking:', createdBooking); // Debug log
+      
       res.status(201).json({
         message: 'Đặt vé thành công!',
         booking: createdBooking
@@ -228,7 +328,7 @@ router.post('/bookings', (req, res) => {
     
   } catch (error) {
     console.error('Error creating booking:', error);
-    res.status(500).json({ error: 'Lỗi khi đặt vé' });
+    res.status(500).json({ error: 'Lỗi khi đặt vé: ' + error.message });
   }
 });
 
