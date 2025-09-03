@@ -571,6 +571,62 @@ app.post('/api/admin/movies/:id/restore', (req, res) => {
   }
 });
 
+// Xóa vĩnh viễn phim
+app.delete('/api/admin/movies/:id/permanent', (req, res) => {
+  try {
+    console.log('Permanent delete movie request:', req.params.id);
+    const movieId = parseInt(req.params.id);
+    const existingMovie = Movie.getById(movieId);
+    
+    if (!existingMovie) {
+      console.log('Movie not found for permanent delete:', movieId);
+      return res.status(404).json({ error: 'Phim không tồn tại' });
+    }
+    
+    console.log('Permanently deleting movie:', existingMovie.title);
+    
+    // Xóa showtimes liên quan
+    const deleteShowtimes = db.prepare('DELETE FROM showtimes WHERE movieId = ?');
+    const showtimeResult = deleteShowtimes.run(movieId);
+    console.log('Deleted showtimes:', showtimeResult.changes);
+    
+    // Xóa bookings liên quan
+    const deleteBookings = db.prepare('DELETE FROM bookings WHERE showtimeId IN (SELECT id FROM showtimes WHERE movieId = ?)');
+    const bookingResult = deleteBookings.run(movieId);
+    console.log('Deleted bookings:', bookingResult.changes);
+    
+    // Xóa movie_categories liên quan
+    const deleteCategories = db.prepare('DELETE FROM movie_categories WHERE movieId = ?');
+    const categoryResult = deleteCategories.run(movieId);
+    console.log('Deleted movie categories:', categoryResult.changes);
+    
+    // Xóa phim vĩnh viễn
+    const deleteMovie = db.prepare('DELETE FROM movies WHERE id = ?');
+    const movieResult = deleteMovie.run(movieId);
+    console.log('Deleted movie:', movieResult.changes);
+    
+    if (movieResult.changes === 0) {
+      return res.status(400).json({ error: 'Không thể xóa phim' });
+    }
+    
+    Activity.create({
+      id: uuidv4(),
+      type: 'movie_deleted_permanently',
+      description: `Phim "${existingMovie.title}" đã được xóa vĩnh viễn khỏi hệ thống`,
+      timestamp: new Date().toISOString()
+    });
+    
+    console.log('Permanent delete completed successfully');
+    res.json({ 
+      message: 'Phim đã được xóa vĩnh viễn thành công',
+      note: `Đã xóa ${showtimeResult.changes} suất chiếu, ${bookingResult.changes} đặt vé và ${categoryResult.changes} liên kết thể loại`
+    });
+  } catch (error) {
+    console.error('Error permanently deleting movie:', error);
+    res.status(500).json({ error: 'Lỗi khi xóa vĩnh viễn phim: ' + error.message });
+  }
+});
+
 app.post('/api/admin/categories', (req, res) => {
   try {
     const categoryId = Category.create(req.body);

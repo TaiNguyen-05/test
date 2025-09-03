@@ -1385,6 +1385,14 @@ function deleteMovie(movieId) {
     );
 }
 
+function deleteMoviePermanently(movieId) {
+    showConfirmModal(
+        '⚠️ CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN phim này?<br><br>Hành động này sẽ:<br>• Xóa hoàn toàn phim khỏi database<br>• Xóa tất cả suất chiếu liên quan<br>• Xóa tất cả đặt vé liên quan<br>• KHÔNG THỂ KHÔI PHỤC!',
+        () => performDeleteMoviePermanently(movieId),
+        'danger'
+    );
+}
+
 function restoreMovie(movieId) {
     showConfirmModal(
         'Bạn có chắc chắn muốn khôi phục phim này?',
@@ -1440,6 +1448,35 @@ async function performDeleteMovie(movieId) {
     } catch (error) {
         console.error('Error deleting movie:', error);
         showNotification('Lỗi khi xóa phim: ' + error.message, 'error');
+    }
+}
+
+async function performDeleteMoviePermanently(movieId) {
+    try {
+        const response = await fetch(`/api/admin/movies/${movieId}/permanent`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Cập nhật danh sách phim
+            await loadMovies();
+            renderMoviesTable();
+            updateDashboardStats();
+            
+            showNotification(result.message + ' ' + (result.note || ''), 'success');
+            closeModal('confirmModal');
+        } else {
+            showNotification(result.error + ': ' + (result.message || ''), 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error deleting movie permanently:', error);
+        showNotification('Lỗi khi xóa vĩnh viễn phim: ' + error.message, 'error');
     }
 }
 
