@@ -1293,7 +1293,12 @@ body::before {
 
 /* Floating Elements - Disabled */
 .floating {
-    /* animation: floating 3s ease-in-out infinite; */
+    animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
 }
 
 /* Glow Effects */

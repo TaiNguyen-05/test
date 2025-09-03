@@ -6,6 +6,17 @@ let users = [];
 let showtimes = [];
 let bookings = [];
 let activities = [];
+let editingUserId = null; // Track which user is being edited
+
+// Pagination variables
+let currentPage = {
+    movies: 1,
+    users: 1,
+    showtimes: 1,
+    bookings: 1,
+    activities: 1
+};
+const itemsPerPage = 10;
 
 // DOM Elements
 const pageTitle = document.getElementById('pageTitle');
@@ -129,6 +140,7 @@ async function loadDashboardData() {
         renderShowtimesTable();
         renderBookingsTable();
         renderActivityList();
+        populateCategoryFilter();
         
     } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -469,11 +481,15 @@ function setupRevenueStatsChart() {
 }
 
 // Render Functions
-function renderMoviesTable() {
+function renderMoviesTable(data = movies) {
     const tbody = document.getElementById('moviesTableBody');
     if (!tbody) return;
     
-    tbody.innerHTML = movies.map(movie => `
+    // Get paginated data
+    const paginatedData = getPaginatedData(data, currentPage.movies, itemsPerPage);
+    const totalPages = getTotalPages(data, itemsPerPage);
+    
+    tbody.innerHTML = paginatedData.map(movie => `
         <tr>
             <td>
                 ${movie.poster || movie.image ? 
@@ -488,7 +504,7 @@ function renderMoviesTable() {
                 <br><small>${movie.description || 'Không có mô tả'}</small>
             </td>
             <td>
-                <span class="status-badge active">${movie.genre || movie.categories || 'Không có thể loại'}</span>
+                <span class="status-badge active">${movie.categories || movie.genre || 'Không có thể loại'}</span>
             </td>
             <td>${movie.duration}</td>
             <td>${movie.rating}</td>
@@ -515,6 +531,12 @@ function renderMoviesTable() {
             </td>
         </tr>
     `).join('');
+    
+    // Render pagination
+    renderPagination('moviesPagination', currentPage.movies, totalPages, (page) => {
+        currentPage.movies = page;
+        renderMoviesTable(data);
+    });
 }
 
 function renderCategoriesGrid() {
@@ -564,10 +586,10 @@ function renderUsersTable() {
             </td>
             <td>${formatDate(user.createdAt)}</td>
             <td>
-                <button class="btn-edit" onclick="editUser(${user.id})">
+                <button class="btn-edit" onclick="editUser('${user.id}')">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-delete" onclick="deleteUser(${user.id})">
+                <button class="btn-delete" onclick="deleteUser('${user.id}')">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -684,6 +706,108 @@ function renderActivityList() {
     `).join('');
 }
 
+// Populate category filter dropdown
+function populateCategoryFilter() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (!categoryFilter) return;
+    
+    // Clear existing options except the first one
+    categoryFilter.innerHTML = '<option value="">Tất cả thể loại</option>';
+    
+    // Add category options
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.name;
+        option.textContent = category.name;
+        categoryFilter.appendChild(option);
+    });
+}
+
+// Pagination Functions
+function getPaginatedData(data, page, itemsPerPage) {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return data.slice(startIndex, endIndex);
+}
+
+function getTotalPages(data, itemsPerPage) {
+    return Math.ceil(data.length / itemsPerPage);
+}
+
+function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    const pagination = document.createElement('div');
+    pagination.className = 'pagination';
+    
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '‹';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => onPageChange(currentPage - 1);
+    pagination.appendChild(prevBtn);
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.textContent = '1';
+        firstBtn.onclick = () => onPageChange(1);
+        pagination.appendChild(firstBtn);
+        
+        if (startPage > 2) {
+            const dots = document.createElement('span');
+            dots.textContent = '...';
+            dots.className = 'pagination-info';
+            pagination.appendChild(dots);
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = i === currentPage ? 'active' : '';
+        pageBtn.onclick = () => onPageChange(i);
+        pagination.appendChild(pageBtn);
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.textContent = '...';
+            dots.className = 'pagination-info';
+            pagination.appendChild(dots);
+        }
+        
+        const lastBtn = document.createElement('button');
+        lastBtn.textContent = totalPages;
+        lastBtn.onclick = () => onPageChange(totalPages);
+        pagination.appendChild(lastBtn);
+    }
+    
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.innerHTML = '›';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => onPageChange(currentPage + 1);
+    pagination.appendChild(nextBtn);
+    
+    // Info
+    const info = document.createElement('span');
+    info.className = 'pagination-info';
+    info.textContent = `Trang ${currentPage} / ${totalPages}`;
+    pagination.appendChild(info);
+    
+    container.appendChild(pagination);
+}
+
 // Filter Functions
 function filterMovies() {
     const searchTerm = document.getElementById('movieSearch').value.toLowerCase();
@@ -692,12 +816,13 @@ function filterMovies() {
     
     const filteredMovies = movies.filter(movie => {
         const matchesSearch = movie.title.toLowerCase().includes(searchTerm);
-        const matchesCategory = !categoryFilter || movie.genre.includes(categoryFilter);
+        const matchesCategory = !categoryFilter || (movie.categories || movie.genre || '').includes(categoryFilter);
         const matchesStatus = !statusFilter || movie.status === statusFilter;
         
         return matchesSearch && matchesCategory && matchesStatus;
     });
     
+    currentPage.movies = 1; // Reset to first page
     renderFilteredMovies(filteredMovies);
 }
 
@@ -755,7 +880,7 @@ function renderFilteredMovies(filteredMovies) {
                 <br><small>${movie.description || 'Không có mô tả'}</small>
             </td>
             <td>
-                <span class="status-badge active">${movie.genre || movie.categories || 'Không có thể loại'}</span>
+                <span class="status-badge active">${movie.categories || movie.genre || 'Không có thể loại'}</span>
             </td>
             <td>${movie.duration}</td>
             <td>${movie.rating}</td>
@@ -798,10 +923,10 @@ function renderFilteredUsers(filteredUsers) {
             </td>
             <td>${formatDate(user.createdAt)}</td>
             <td>
-                <button class="btn-edit" onclick="editUser(${user.id})">
+                <button class="btn-edit" onclick="editUser('${user.id}')">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-delete" onclick="deleteUser(${user.id})">
+                <button class="btn-delete" onclick="deleteUser('${user.id}')">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -865,6 +990,19 @@ function showAddShowtimeModal() {
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
+    
+    // Reset user form when closing user modal
+    if (modalId === 'userModal') {
+        editingUserId = null;
+        document.getElementById('userModalTitle').textContent = 'Thêm Người dùng';
+        
+        // Show password field again
+        const passwordField = document.getElementById('userPassword');
+        const passwordLabel = passwordField.previousElementSibling;
+        passwordField.style.display = 'block';
+        passwordLabel.style.display = 'block';
+        passwordField.required = true;
+    }
 }
 
 // File Upload Preview
@@ -1035,32 +1173,58 @@ async function handleUserSubmit(e) {
         name: formData.get('userName'),
         email: formData.get('userEmail'),
         phone: formData.get('userPhone'),
-        role: formData.get('userRole'),
-        password: formData.get('userPassword')
+        role: formData.get('userRole')
     };
     
+    // Only include password if creating new user
+    if (!editingUserId) {
+        userData.password = formData.get('userPassword');
+    }
+    
     try {
-        // Gọi API thực tế để tạo user
-        const response = await fetch('/api/admin/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        });
+        let response;
+        let successMessage;
+        
+        if (editingUserId) {
+            // Update existing user
+            response = await fetch(`/api/admin/users/${editingUserId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+            successMessage = 'Người dùng đã được cập nhật thành công! ✏️';
+        } else {
+            // Create new user
+            response = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+            successMessage = 'Người dùng đã được thêm thành công! 👤';
+        }
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Lỗi khi tạo người dùng');
+            throw new Error(errorData.error || `Lỗi khi ${editingUserId ? 'cập nhật' : 'tạo'} người dùng`);
         }
         
-        const newUser = await response.json();
-        
-        showNotification('Người dùng đã được thêm thành công! 👤', 'success');
+        showNotification(successMessage, 'success');
         closeModal('userModal');
         
-        // Reset form
+        // Reset form and editing state
         e.target.reset();
+        editingUserId = null;
+        
+        // Show password field again
+        const passwordField = document.getElementById('userPassword');
+        const passwordLabel = passwordField.previousElementSibling;
+        passwordField.style.display = 'block';
+        passwordLabel.style.display = 'block';
+        passwordField.required = true;
         
         // Reload users
         await loadUsers();
@@ -1068,8 +1232,8 @@ async function handleUserSubmit(e) {
         updateDashboardStats();
         
     } catch (error) {
-        showNotification(`Lỗi khi thêm người dùng: ${error.message}`, 'error');
-        console.error('Error creating user:', error);
+        showNotification(`Lỗi khi ${editingUserId ? 'cập nhật' : 'tạo'} người dùng: ${error.message}`, 'error');
+        console.error('Error handling user:', error);
     }
 }
 
@@ -1180,11 +1344,20 @@ function editUser(userId) {
     const user = users.find(u => u.id === userId);
     if (!user) return;
     
+    editingUserId = userId; // Store the user ID being edited
+    
     document.getElementById('userModalTitle').textContent = 'Sửa Người dùng';
     document.getElementById('userName').value = user.name;
     document.getElementById('userEmail').value = user.email;
     document.getElementById('userPhone').value = user.phone || '';
     document.getElementById('userRole').value = user.role;
+    
+    // Hide password field when editing
+    const passwordField = document.getElementById('userPassword');
+    const passwordLabel = passwordField.previousElementSibling;
+    passwordField.style.display = 'none';
+    passwordLabel.style.display = 'none';
+    passwordField.required = false;
     
     document.getElementById('userModal').classList.add('show');
 }
@@ -1317,10 +1490,18 @@ async function performDeleteCategory(categoryId) {
 
 async function performDeleteUser(userId) {
     try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Gọi API thực tế để xóa user
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE'
+        });
         
-        users = users.filter(u => u.id !== userId);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Lỗi khi xóa người dùng');
+        }
+        
+        // Reload users từ server
+        await loadUsers();
         renderUsersTable();
         updateDashboardStats();
         
@@ -1328,7 +1509,8 @@ async function performDeleteUser(userId) {
         closeModal('confirmModal');
         
     } catch (error) {
-        showNotification('Lỗi khi xóa người dùng', 'error');
+        showNotification(`Lỗi khi xóa người dùng: ${error.message}`, 'error');
+        console.error('Error deleting user:', error);
     }
 }
 

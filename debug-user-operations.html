@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug User Operations</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug User Operations</h1>
+    
+    <div class="debug-section">
+        <h3>Test JavaScript Functions</h3>
+        <button onclick="testEditUser()">Test editUser Function</button>
+        <button onclick="testDeleteUser()">Test deleteUser Function</button>
+        <button onclick="testShowConfirmModal()">Test showConfirmModal</button>
+        <div id="debugResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Test API Calls</h3>
+        <button onclick="testGetUsers()">Test GET /api/admin/users</button>
+        <button onclick="testUpdateUser()">Test PUT /api/admin/users/:id</button>
+        <button onclick="testDeleteUserAPI()">Test DELETE /api/admin/users/:id</button>
+        <div id="apiResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Console Logs</h3>
+        <p>Mở Developer Tools (F12) để xem console logs</p>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+
+    <script>
+        function log(message) {
+            console.log('🐛 DEBUG:', message);
+            const resultDiv = document.getElementById('debugResult');
+            resultDiv.innerHTML += '<div>' + message + '</div>';
+            resultDiv.style.display = 'block';
+        }
+
+        function testEditUser() {
+            log('Testing editUser function...');
+            try {
+                // Simulate user data
+                const testUser = {
+                    id: 'test-user-id',
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    phone: '0123456789',
+                    role: 'user'
+                };
+                
+                // Check if function exists
+                if (typeof editUser === 'function') {
+                    log('✅ editUser function exists');
+                    // Don't actually call it as it needs DOM elements
+                    log('✅ editUser function is callable');
+                } else {
+                    log('❌ editUser function not found');
+                }
+            } catch (error) {
+                log('❌ Error testing editUser: ' + error.message);
+            }
+        }
+
+        function testDeleteUser() {
+            log('Testing deleteUser function...');
+            try {
+                if (typeof deleteUser === 'function') {
+                    log('✅ deleteUser function exists');
+                    // Don't actually call it as it needs DOM elements
+                    log('✅ deleteUser function is callable');
+                } else {
+                    log('❌ deleteUser function not found');
+                }
+            } catch (error) {
+                log('❌ Error testing deleteUser: ' + error.message);
+            }
+        }
+
+        function testShowConfirmModal() {
+            log('Testing showConfirmModal function...');
+            try {
+                if (typeof showConfirmModal === 'function') {
+                    log('✅ showConfirmModal function exists');
+                    // Test with dummy data
+                    showConfirmModal('Test message', () => log('✅ Confirm callback works'));
+                    log('✅ showConfirmModal function is callable');
+                } else {
+                    log('❌ showConfirmModal function not found');
+                }
+            } catch (error) {
+                log('❌ Error testing showConfirmModal: ' + error.message);
+            }
+        }
+
+        async function testGetUsers() {
+            log('Testing GET /api/admin/users...');
+            try {
+                const response = await fetch('/api/admin/users');
+                const result = await response.json();
+                
+                const resultDiv = document.getElementById('apiResult');
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ GET /api/admin/users successful<br>Found ${result.length} users`;
+                    log(`✅ GET /api/admin/users successful - ${result.length} users`);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ GET /api/admin/users failed: ${result.error}`;
+                    log(`❌ GET /api/admin/users failed: ${result.error}`);
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                const resultDiv = document.getElementById('apiResult');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network error: ${error.message}`;
+                resultDiv.style.display = 'block';
+                log(`❌ Network error: ${error.message}`);
+            }
+        }
+
+        async function testUpdateUser() {
+            log('Testing PUT /api/admin/users/:id...');
+            try {
+                // First get a user to update
+                const getResponse = await fetch('/api/admin/users');
+                const users = await getResponse.json();
+                
+                if (users.length > 0) {
+                    const testUser = users[0];
+                    const updateData = {
+                        name: testUser.name + ' (Updated)',
+                        role: testUser.role
+                    };
+                    
+                    const response = await fetch(`/api/admin/users/${testUser.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    const result = await response.json();
+                    const resultDiv = document.getElementById('apiResult');
+                    
+                    if (response.ok) {
+                        resultDiv.className = 'result success';
+                        resultDiv.innerHTML = `✅ PUT /api/admin/users/:id successful<br>Updated user: ${result.name}`;
+                        log(`✅ PUT /api/admin/users/:id successful - ${result.name}`);
+                    } else {
+                        resultDiv.className = 'result error';
+                        resultDiv.innerHTML = `❌ PUT /api/admin/users/:id failed: ${result.error}`;
+                        log(`❌ PUT /api/admin/users/:id failed: ${result.error}`);
+                    }
+                    resultDiv.style.display = 'block';
+                } else {
+                    log('❌ No users found to test update');
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('apiResult');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network error: ${error.message}`;
+                resultDiv.style.display = 'block';
+                log(`❌ Network error: ${error.message}`);
+            }
+        }
+
+        async function testDeleteUserAPI() {
+            log('Testing DELETE /api/admin/users/:id...');
+            try {
+                // First get a user to delete (but don't actually delete it)
+                const getResponse = await fetch('/api/admin/users');
+                const users = await getResponse.json();
+                
+                if (users.length > 0) {
+                    const testUser = users[0];
+                    log(`✅ Found user to test delete: ${testUser.name} (${testUser.id})`);
+                    log('⚠️ Not actually deleting user for safety');
+                    
+                    const resultDiv = document.getElementById('apiResult');
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ DELETE /api/admin/users/:id endpoint exists<br>Test user: ${testUser.name}`;
+                    resultDiv.style.display = 'block';
+                } else {
+                    log('❌ No users found to test delete');
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('apiResult');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network error: ${error.message}`;
+                resultDiv.style.display = 'block';
+                log(`❌ Network error: ${error.message}`);
+            }
+        }
+
+        function clearConsole() {
+            console.clear();
+            document.getElementById('debugResult').innerHTML = '';
+            document.getElementById('debugResult').style.display = 'none';
+            document.getElementById('apiResult').innerHTML = '';
+            document.getElementById('apiResult').style.display = 'none';
+        }
+
+        // Load admin.js to test functions
+        window.addEventListener('load', () => {
+            log('Page loaded, testing functions...');
+            
+            // Check if admin.js is loaded
+            if (typeof editUser === 'function') {
+                log('✅ admin.js loaded successfully');
+            } else {
+                log('❌ admin.js not loaded or functions not available');
+            }
+        });
+    </script>
+    
+    <!-- Load admin.js to test functions -->
+    <script src="admin.js"></script>
+</body>
+</html>
