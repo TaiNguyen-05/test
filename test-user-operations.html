@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test User Operations - Cinema Booking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+        .error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .user-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+        .user-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .user-card .role {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+        .user-card .actions {
+            margin-top: 10px;
+        }
+        .user-card .actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 2px;
+        }
+        .btn-edit {
+            background: #28a745;
+        }
+        .btn-delete {
+            background: #dc3545;
+        }
+        .btn-edit:hover {
+            background: #218838;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test User Operations (Edit & Delete)</h1>
+        
+        <div class="test-section">
+            <h3>1. Tạo User Test</h3>
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="testName" value="Test User" placeholder="Tên người dùng">
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="testEmail" value="test@example.com" placeholder="Email">
+            </div>
+            <div class="form-group">
+                <label>Phone:</label>
+                <input type="tel" id="testPhone" value="0123456789" placeholder="Số điện thoại">
+            </div>
+            <div class="form-group">
+                <label>Role:</label>
+                <select id="testRole">
+                    <option value="user">User</option>
+                    <option value="moderator">Moderator</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="testPassword" value="password123" placeholder="Mật khẩu">
+            </div>
+            <button onclick="createTestUser()">Tạo User Test</button>
+            <div id="createResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Danh Sách Users</h3>
+            <button onclick="getAllUsers()">Lấy Tất Cả Users</button>
+            <div id="usersList" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Test Cập Nhật User</h3>
+            <div class="form-group">
+                <label>User ID:</label>
+                <input type="text" id="updateUserId" placeholder="Nhập User ID">
+            </div>
+            <div class="form-group">
+                <label>New Name:</label>
+                <input type="text" id="newName" placeholder="Tên mới">
+            </div>
+            <div class="form-group">
+                <label>New Role:</label>
+                <select id="newRole">
+                    <option value="user">User</option>
+                    <option value="moderator">Moderator</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <button onclick="updateUser()">Cập Nhật User</button>
+            <div id="updateResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Test Xóa User</h3>
+            <div class="form-group">
+                <label>User ID:</label>
+                <input type="text" id="deleteUserId" placeholder="Nhập User ID">
+            </div>
+            <button onclick="deleteUser()" class="btn-delete">Xóa User</button>
+            <div id="deleteResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Test Admin Dashboard</h3>
+            <button onclick="openAdminDashboard()">Mở Admin Dashboard</button>
+            <p><small>Mở admin dashboard để test chức năng sửa và xóa trực tiếp từ giao diện</small></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3002';
+
+        async function createTestUser() {
+            const userData = {
+                name: document.getElementById('testName').value,
+                email: document.getElementById('testEmail').value,
+                phone: document.getElementById('testPhone').value,
+                role: document.getElementById('testRole').value,
+                password: document.getElementById('testPassword').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('createResult');
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ User created successfully!<br>ID: ${result.id || 'N/A'}<br>Name: ${result.name}<br>Role: ${result.role}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                const resultDiv = document.getElementById('createResult');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        async function getAllUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/users`);
+                const users = await response.json();
+                
+                const resultDiv = document.getElementById('usersList');
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    let html = '<h4>📋 Danh sách Users:</h4>';
+                    html += '<div class="user-list">';
+                    users.forEach(user => {
+                        html += `
+                            <div class="user-card">
+                                <h4>${user.name}</h4>
+                                <p><strong>Email:</strong> ${user.email}</p>
+                                <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                                <span class="role">${user.role}</span>
+                                <p><strong>ID:</strong> <code>${user.id}</code></p>
+                                <div class="actions">
+                                    <button class="btn-edit" onclick="fillUpdateForm('${user.id}', '${user.name}', '${user.role}')">Edit</button>
+                                    <button class="btn-delete" onclick="fillDeleteForm('${user.id}')">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Error: ${users.error}`;
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                const resultDiv = document.getElementById('usersList');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        function fillUpdateForm(userId, name, role) {
+            document.getElementById('updateUserId').value = userId;
+            document.getElementById('newName').value = name;
+            document.getElementById('newRole').value = role;
+        }
+
+        function fillDeleteForm(userId) {
+            document.getElementById('deleteUserId').value = userId;
+        }
+
+        async function updateUser() {
+            const userId = document.getElementById('updateUserId').value;
+            const newName = document.getElementById('newName').value;
+            const newRole = document.getElementById('newRole').value;
+
+            if (!userId) {
+                alert('Vui lòng nhập User ID');
+                return;
+            }
+
+            const updateData = {
+                name: newName,
+                role: newRole
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('updateResult');
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ User updated successfully!<br>Name: ${result.name}<br>Role: ${result.role}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                const resultDiv = document.getElementById('updateResult');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        async function deleteUser() {
+            const userId = document.getElementById('deleteUserId').value;
+
+            if (!userId) {
+                alert('Vui lòng nhập User ID');
+                return;
+            }
+
+            if (!confirm('Bạn có chắc chắn muốn xóa user này?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('deleteResult');
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ User deleted successfully!`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                const resultDiv = document.getElementById('deleteResult');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        function openAdminDashboard() {
+            window.open('/admin.html', '_blank');
+        }
+    </script>
+</body>
+</html>
