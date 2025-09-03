@@ -47,6 +47,45 @@ class Showtime {
     return stmt.all(movieId);
   }
 
+  // Lấy thông tin ghế cho showtime
+  static getSeats(showtimeId) {
+    // Tạo sơ đồ ghế 12x8 (96 ghế)
+    const seats = [];
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    
+    // Lấy ghế đã đặt cho showtime này
+    const stmt = db.prepare(`
+      SELECT DISTINCT b.seats
+      FROM bookings b
+      WHERE b.showtimeId = ? AND b.status != 'cancelled'
+    `);
+    const bookedSeats = stmt.all(showtimeId);
+    
+    // Tạo danh sách ghế đã đặt
+    const occupiedSeats = new Set();
+    bookedSeats.forEach(booking => {
+      if (booking.seats) {
+        const seatList = booking.seats.split(',');
+        seatList.forEach(seat => {
+          occupiedSeats.add(seat.trim());
+        });
+      }
+    });
+    
+    // Tạo sơ đồ ghế
+    rows.forEach(row => {
+      for (let col = 1; col <= 12; col++) {
+        const seatNumber = `${row}${col}`;
+        seats.push({
+          seatNumber: seatNumber,
+          isOccupied: occupiedSeats.has(seatNumber)
+        });
+      }
+    });
+    
+    return seats;
+  }
+
   // Lấy showtimes theo ngày
   static getByDate(date) {
     const stmt = db.prepare(`

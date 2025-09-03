@@ -99,30 +99,10 @@ router.get('/showtimes/:id', (req, res) => {
 router.get('/showtimes/:id/seats', (req, res) => {
   try {
     const showtimeId = parseInt(req.params.id);
-    const showtime = Showtime.getById(showtimeId);
-    
-    if (!showtime) {
-      return res.status(404).json({ error: 'Suất chiếu không tồn tại' });
-    }
-    
-    // Lấy danh sách ghế đã đặt
-    const bookings = Booking.getByShowtimeId(showtimeId);
-    const bookedSeats = [];
-    
-    bookings.forEach(booking => {
-      const seats = JSON.parse(booking.seats);
-      bookedSeats.push(...seats);
-    });
-    
-    res.json({
-      showtimeId: showtime.id,
-      movieTitle: showtime.movieTitle,
-      totalSeats: showtime.maxSeats,
-      availableSeats: showtime.availableSeats,
-      bookedSeats: bookedSeats,
-      price: showtime.price
-    });
+    const seats = Showtime.getSeats(showtimeId);
+    res.json(seats);
   } catch (error) {
+    console.error('Error getting seats:', error);
     res.status(500).json({ error: 'Lỗi khi lấy thông tin ghế' });
   }
 });

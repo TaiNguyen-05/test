@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn Suất Chiếu - Cinema Booking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .showtimes-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .showtimes-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        
+        .showtimes-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .showtimes-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .movie-info {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .movie-poster {
+            width: 120px;
+            height: 180px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .movie-details h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .movie-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .movie-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .movie-genre {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .showtimes-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .showtimes-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .showtimes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .showtime-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .showtime-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .showtime-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .showtime-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+        
+        .showtime-card.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .showtime-card.selected::before {
+            transform: scaleX(1);
+            background: white;
+        }
+        
+        .showtime-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .showtime-card.selected .showtime-time {
+            color: white;
+        }
+        
+        .showtime-price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+        
+        .showtime-card.selected .showtime-price {
+            color: #90EE90;
+        }
+        
+        .showtime-seats {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .showtime-card.selected .showtime-seats {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .continue-button {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+        
+        .continue-button:hover {
+            background: linear-gradient(135deg, #218838, #1ea085);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+        
+        .continue-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .no-showtimes {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .no-showtimes i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        
+        .no-showtimes h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .no-showtimes p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .showtimes-container {
+                padding: 15px;
+            }
+            
+            .showtimes-header h1 {
+                font-size: 2rem;
+            }
+            
+            .movie-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .movie-poster {
+                width: 100px;
+                height: 150px;
+            }
+            
+            .showtimes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="showtimes-container">
+        <button class="back-button" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </button>
+        
+        <div class="showtimes-header">
+            <h1><i class="fas fa-clock"></i> Chọn Suất Chiếu</h1>
+            <p>Chọn suất chiếu phù hợp với thời gian của bạn</p>
+        </div>
+        
+        <div id="movieInfo" class="movie-info" style="display: none;">
+            <img id="moviePoster" class="movie-poster" src="" alt="">
+            <div class="movie-details">
+                <h2 id="movieTitle"></h2>
+                <div class="movie-meta">
+                    <span><i class="fas fa-clock"></i> <span id="movieDuration"></span></span>
+                    <span><i class="fas fa-star"></i> <span id="movieRating"></span></span>
+                </div>
+                <div class="movie-genre" id="movieGenre"></div>
+            </div>
+        </div>
+        
+        <div class="showtimes-section">
+            <h3><i class="fas fa-calendar-alt"></i> Suất Chiếu Hôm Nay</h3>
+            <div id="showtimesGrid" class="showtimes-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Đang tải suất chiếu...</p>
+                </div>
+            </div>
+            
+            <button id="continueBtn" class="continue-button" onclick="continueToSeats()" disabled>
+                <i class="fas fa-arrow-right"></i> Tiếp tục chọn ghế
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let selectedMovie = null;
+        let selectedShowtime = null;
+        let showtimes = [];
+        
+        // Kiểm tra đăng nhập khi page load
+        window.addEventListener('load', () => {
+            checkLoginStatus();
+            loadMovieAndShowtimes();
+        });
+        
+        function checkLoginStatus() {
+            const userData = localStorage.getItem('currentUser');
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('User logged in:', currentUser);
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    localStorage.removeItem('currentUser');
+                    redirectToLogin();
+                }
+            } else {
+                redirectToLogin();
+            }
+        }
+        
+        function redirectToLogin() {
+            alert('Vui lòng đăng nhập để tiếp tục');
+            window.location.href = '/index.html';
+        }
+        
+        async function loadMovieAndShowtimes() {
+            try {
+                // Lấy movieId từ URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const movieId = urlParams.get('movieId');
+                
+                if (!movieId) {
+                    showError('Không tìm thấy thông tin phim');
+                    return;
+                }
+                
+                // Load movie và showtimes song song
+                const [movieResponse, showtimesResponse] = await Promise.all([
+                    fetch(`/api/movies/${movieId}`),
+                    fetch('/api/showtimes')
+                ]);
+                
+                if (movieResponse.ok) {
+                    selectedMovie = await movieResponse.json();
+                    renderMovieInfo();
+                } else {
+                    showError('Không thể tải thông tin phim');
+                }
+                
+                if (showtimesResponse.ok) {
+                    const allShowtimes = await showtimesResponse.json();
+                    showtimes = allShowtimes.filter(st => st.movieId === parseInt(movieId));
+                    renderShowtimes();
+                } else {
+                    showError('Không thể tải suất chiếu');
+                }
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showError('Lỗi khi tải dữ liệu');
+            }
+        }
+        
+        function renderMovieInfo() {
+            if (!selectedMovie) return;
+            
+            document.getElementById('moviePoster').src = selectedMovie.image;
+            document.getElementById('movieTitle').textContent = selectedMovie.title;
+            document.getElementById('movieDuration').textContent = selectedMovie.duration;
+            document.getElementById('movieRating').textContent = selectedMovie.rating;
+            document.getElementById('movieGenre').textContent = selectedMovie.genre;
+            document.getElementById('movieInfo').style.display = 'flex';
+        }
+        
+        function renderShowtimes() {
+            const showtimesGrid = document.getElementById('showtimesGrid');
+            
+            if (showtimes.length === 0) {
+                showtimesGrid.innerHTML = `
+                    <div class="no-showtimes">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>Không có suất chiếu</h3>
+                        <p>Hiện tại không có suất chiếu nào cho phim này</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            showtimesGrid.innerHTML = showtimes.map((showtime, index) => `
+                <div class="showtime-card ${selectedShowtime && selectedShowtime.id === showtime.id ? 'selected' : ''}" 
+                     onclick="selectShowtime(${showtime.id})"
+                     style="animation-delay: ${index * 0.1}s">
+                    <div class="showtime-time">
+                        <i class="fas fa-clock"></i> ${showtime.time}
+                    </div>
+                    <div class="showtime-price">
+                        <i class="fas fa-money-bill-wave"></i> ${formatPrice(showtime.price)} VNĐ
+                    </div>
+                    <div class="showtime-seats">
+                        <i class="fas fa-chair"></i> Còn ${showtime.availableSeats} ghế
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add entrance animation
+            const cards = showtimesGrid.querySelectorAll('.showtime-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+        
+        function selectShowtime(showtimeId) {
+            selectedShowtime = showtimes.find(st => st.id === showtimeId);
+            renderShowtimes();
+            
+            // Enable continue button
+            const continueBtn = document.getElementById('continueBtn');
+            continueBtn.disabled = false;
+            
+            // Add selection effect
+            addSelectionEffect(continueBtn);
+        }
+        
+        function continueToSeats() {
+            if (!selectedShowtime) {
+                showError('Vui lòng chọn suất chiếu');
+                return;
+            }
+            
+            // Redirect to seats page with showtimeId
+            window.location.href = `/seats.html?showtimeId=${selectedShowtime.id}&movieId=${selectedMovie.id}`;
+        }
+        
+        function goBack() {
+            window.history.back();
+        }
+        
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN').format(price);
+        }
+        
+        function showError(message) {
+            alert('Lỗi: ' + message);
+        }
+        
+        function addSelectionEffect(element) {
+            element.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+            }, 200);
+        }
+    </script>
+</body>
+</html>

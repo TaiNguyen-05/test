@@ -541,17 +541,8 @@ function selectMovie(movieId) {
         return;
     }
     
-    selectedMovie = movies.find(m => m.id === movieId);
-    selectedShowtime = null;
-    selectedSeats = [];
-    
-    renderMovieDetails();
-    renderShowtimes();
-    if (bookingSection) bookingSection.style.display = 'block';
-    if (seatSelection) seatSelection.style.display = 'none';
-    
-    // Add selection effect
-    if (bookingSection) addSelectionEffect(bookingSection);
+    // Redirect to showtimes page
+    window.location.href = `/showtimes.html?movieId=${movieId}`;
 }
 
 function renderMovieDetails() {

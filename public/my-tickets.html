@@ -82,6 +82,209 @@
             margin-bottom: 30px;
         }
         
+        /* Print Modal */
+        .print-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .print-modal.show {
+            display: flex;
+        }
+        
+        .print-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .print-ticket {
+            background: white;
+            border: 3px solid #333;
+            border-radius: 15px;
+            padding: 25px;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .print-ticket::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .print-ticket::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -2px;
+            width: 4px;
+            height: 20px;
+            background: #333;
+            transform: translateY(-50%);
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .ticket-header-print {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 15px;
+        }
+        
+        .ticket-header-print h2 {
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            color: #333;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .ticket-header-print p {
+            margin: 3px 0;
+            color: #333;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .ticket-info-print {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .ticket-info-print .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .ticket-info-print .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ticket-info-print .label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .ticket-info-print .value {
+            color: #666;
+        }
+        
+        .ticket-seats-print {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .ticket-seats-print h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .seat-list {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .ticket-footer-print {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed #333;
+            font-size: 0.8rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .print-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .btn-print-confirm {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-print-confirm:hover {
+            background: #218838;
+        }
+        
+        .btn-print-close {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-print-close:hover {
+            background: #5a6268;
+        }
+        
+        @media print {
+            .print-modal {
+                display: block !important;
+                background: white !important;
+            }
+            
+            .print-content {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                max-width: none !important;
+                width: 100% !important;
+                max-height: none !important;
+            }
+            
+            .print-actions {
+                display: none !important;
+            }
+            
+            .print-ticket {
+                box-shadow: none !important;
+                border: 2px solid #000 !important;
+            }
+        }
+        
         .browse-movies-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -211,6 +414,22 @@
             transform: translateY(-2px);
         }
         
+        .btn-print {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-print:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
         .btn-view {
             background: #007bff;
             color: white;
@@ -278,6 +497,15 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            
+            .print-content {
+                max-width: 95%;
+                padding: 20px;
+            }
+            
+            .ticket-info-print {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -298,6 +526,23 @@
                     <i class="fas fa-spinner"></i>
                     <p>Đang tải vé...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Ticket Modal -->
+    <div id="printModal" class="print-modal">
+        <div class="print-content">
+            <div id="printTicketContent" class="print-ticket">
+                <!-- Print ticket content will be loaded here -->
+            </div>
+            <div class="print-actions">
+                <button class="btn-print-confirm" onclick="confirmPrint()">
+                    <i class="fas fa-print"></i> In vé
+                </button>
+                <button class="btn-print-close" onclick="closePrintModal()">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
             </div>
         </div>
     </div>
@@ -416,14 +661,17 @@
                             </div>
                             
                             <div class="ticket-actions">
+                                <button class="btn-print" onclick="printTicket('${booking.id}')">
+                                    <i class="fas fa-print"></i> In vé
+                                </button>
+                                <button class="btn-view" onclick="viewTicketDetails('${booking.id}')">
+                                    <i class="fas fa-eye"></i> Xem chi tiết
+                                </button>
                                 ${booking.status !== 'cancelled' ? `
                                     <button class="btn-cancel" onclick="cancelTicket('${booking.id}')">
                                         <i class="fas fa-times"></i> Hủy Vé
                                     </button>
                                 ` : ''}
-                                <button class="btn-view" onclick="viewTicketDetails('${booking.id}')">
-                                    <i class="fas fa-eye"></i> Xem chi tiết
-                                </button>
                             </div>
                         </div>
                     `).join('')}
@@ -504,6 +752,97 @@
                 alert(`Chi tiết vé:\nPhim: ${booking.movieTitle}\nSuất chiếu: ${booking.time} - ${booking.date}\nGhế: ${formatSeats(booking.seats)}\nTổng tiền: ${formatPrice(booking.totalPrice)} VNĐ`);
             }
         }
+        
+        function printTicket(bookingId) {
+            const booking = userBookings.find(b => b.id === bookingId);
+            if (!booking) return;
+            
+            // Tạo nội dung vé in
+            const printContent = `
+                <div class="ticket-header-print">
+                    <h2>🎬 CINEMA BOOKING</h2>
+                    <p>═══════════════════════════════</p>
+                    <p><strong>VÉ XEM PHIM ĐIỆN TỬ</strong></p>
+                    <p>Mã vé: <strong>#${booking.id.slice(0, 8).toUpperCase()}</strong></p>
+                    <p>═══════════════════════════════</p>
+                </div>
+                
+                <div class="ticket-info-print">
+                    <div class="info-item">
+                        <span class="label">Phim:</span>
+                        <span class="value">${booking.movieTitle}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Ngày:</span>
+                        <span class="value">${booking.date}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Giờ:</span>
+                        <span class="value">${booking.time}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Rạp:</span>
+                        <span class="value">Cinema ${booking.cinema || '1'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Khách hàng:</span>
+                        <span class="value">${currentUser.name}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Email:</span>
+                        <span class="value">${currentUser.email}</span>
+                    </div>
+                </div>
+                
+                <div class="ticket-seats-print">
+                    <h4>🎫 Ghế đã đặt</h4>
+                    <div class="seat-list">${formatSeats(booking.seats)}</div>
+                </div>
+                
+                <div class="ticket-info-print">
+                    <div class="info-item">
+                        <span class="label">Số lượng vé:</span>
+                        <span class="value">${booking.seats ? booking.seats.split(',').length : 1}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Giá vé:</span>
+                        <span class="value">${formatPrice(booking.totalPrice)} VNĐ</span>
+                    </div>
+                </div>
+                
+                <div class="ticket-footer-print">
+                    <p>═══════════════════════════════</p>
+                    <p><strong>📱 QUÉT MÃ QR ĐỂ XÁC THỰC VÉ</strong></p>
+                    <p>🎭 Vui lòng đến rạp trước 15 phút</p>
+                    <p>🚫 Không được hoàn tiền sau khi in vé</p>
+                    <p>═══════════════════════════════</p>
+                    <p>📞 Hotline: 1900-xxxx</p>
+                    <p>🌐 Website: cinemabooking.com</p>
+                    <p>📅 Ngày in: ${new Date().toLocaleString('vi-VN')}</p>
+                    <p>═══════════════════════════════</p>
+                </div>
+            `;
+            
+            // Hiển thị modal in vé
+            document.getElementById('printTicketContent').innerHTML = printContent;
+            document.getElementById('printModal').classList.add('show');
+        }
+        
+        function confirmPrint() {
+            // Mở dialog in
+            window.print();
+        }
+        
+        function closePrintModal() {
+            document.getElementById('printModal').classList.remove('show');
+        }
+        
+        // Đóng modal khi click outside
+        document.getElementById('printModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePrintModal();
+            }
+        });
         
         function showSuccessMessage(message) {
             // Tạo notification tạm thời

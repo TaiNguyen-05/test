@@ -332,12 +332,47 @@ app.get('/api/movies', (req, res) => {
   }
 });
 
+app.get('/api/movies/:id', (req, res) => {
+  try {
+    const movie = Movie.getById(req.params.id);
+    if (!movie) {
+      return res.status(404).json({ error: 'Không tìm thấy phim' });
+    }
+    res.json(movie);
+  } catch (error) {
+    res.status(500).json({ error: 'Lỗi khi lấy thông tin phim' });
+  }
+});
+
 app.get('/api/showtimes', (req, res) => {
   try {
     const showtimes = Showtime.getAll();
     res.json(showtimes);
   } catch (error) {
     res.status(500).json({ error: 'Lỗi khi lấy danh sách suất chiếu' });
+  }
+});
+
+app.get('/api/showtimes/:id', (req, res) => {
+  try {
+    const showtime = Showtime.getById(req.params.id);
+    if (!showtime) {
+      return res.status(404).json({ error: 'Không tìm thấy suất chiếu' });
+    }
+    res.json(showtime);
+  } catch (error) {
+    res.status(500).json({ error: 'Lỗi khi lấy thông tin suất chiếu' });
+  }
+});
+
+app.get('/api/showtimes/:id/seats', (req, res) => {
+  try {
+    const showtimeId = req.params.id;
+    const seats = Showtime.getSeats(showtimeId);
+    res.json(seats);
+  } catch (error) {
+    console.error('Error getting seats:', error);
+    res.status(500).json({ error: 'Lỗi khi lấy thông tin ghế' });
   }
 });
 
